@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { categories, getCategory, getProductsByCategory } from '@/data/products';
+import { categories } from '@/data/products';
+import { getCategory, getProductsByCategory } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ category: c.slug }));
-}
+export const revalidate = 30;
 
 export async function generateMetadata({ params }) {
   const { category: categorySlug } = await params;
@@ -17,7 +16,7 @@ export default async function CategoryPage({ params }) {
   const { category: categorySlug } = await params;
   const category = getCategory(categorySlug);
   if (!category) notFound();
-  const items = getProductsByCategory(categorySlug);
+  const items = await getProductsByCategory(categorySlug);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">

@@ -79,14 +79,16 @@ export default function AddToCartForm({ product }) {
         </button>
       </div>
 
-      <p className="text-xs text-forest/80 pt-1">
-        Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
-        tell us your measurements at checkout, or reach out on the{' '}
-        <a href="/custom-tailoring" className="underline hover:text-gold">
-          Custom Made For You
-        </a>{' '}
-        page first.
-      </p>
+      {product.customStitch !== false && (
+        <p className="text-xs text-forest/80 pt-1">
+          Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
+          tell us your measurements at checkout, or reach out on the{' '}
+          <a href="/custom-tailoring" className="underline hover:text-gold">
+            Custom Made For You
+          </a>{' '}
+          page first.
+        </p>
+      )}
     </div>
   );
 }

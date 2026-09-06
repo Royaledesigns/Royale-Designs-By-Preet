@@ -1,10 +1,14 @@
 import Link from 'next/link';
-import { categories, products } from '@/data/products';
+import { categories } from '@/data/products';
+import { getAllProducts } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
 export const metadata = { title: 'Shop All | Royale Designs by Preet' };
+export const revalidate = 30;
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const products = await getAllProducts();
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
       <h1 className="font-serif text-4xl text-forest-dark mb-2">Shop All</h1>

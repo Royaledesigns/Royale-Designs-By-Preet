@@ -1,27 +1,31 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getCategory, getProduct, getProductsByCategory, products } from '@/data/products';
+import { getCategory, getProduct, getProductsByCategory } from '@/lib/catalog';
 import Price from '@/components/Price';
 import ProductCard from '@/components/ProductCard';
 import AddToCartForm from '@/components/AddToCartForm';
 
-export function generateStaticParams() {
-  return products.map((p) => ({ handle: p.handle }));
-}
+// Products can be added at any time from the admin dashboard (including
+// ones pulled in from Instagram), so this page is rendered on demand rather
+// than pre-built at deploy time — revalidate keeps it cached briefly for
+// speed without needing a redeploy for new products to appear.
+export const revalidate = 30;
 
 export async function generateMetadata({ params }) {
   const { handle } = await params;
-  const product = getProduct(handle);
+  const product = await getProduct(handle);
   return { title: product ? `${product.title} | Royale Designs by Preet` : 'Product' };
 }
 
 export default async function ProductPage({ params }) {
   const { handle } = await params;
-  const product = getProduct(handle);
+  const product = await getProduct(handle);
   if (!product) notFound();
   const category = getCategory(product.category);
-  const related = getProductsByCategory(product.category).filter((p) => p.handle !== product.handle).slice(0, 4);
+  const related = (await getProductsByCategory(product.category))
+    .filter((p) => p.handle !== product.handle)
+    .slice(0, 4);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">

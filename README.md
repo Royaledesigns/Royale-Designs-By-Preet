@@ -139,8 +139,43 @@ A calendar reminder every 7–8 weeks is the simplest way to not forget this.
 
 Note this feed only shows your recent **photos and captions with a link
 back to Instagram** — it can't pull prices, sizes or inventory, since
-Instagram doesn't have that data. To actually sell a piece you've posted,
-still add it to `data/products.js` as usual.
+Instagram doesn't have that data. To actually sell a piece you've posted, use
+the admin dashboard below to turn it into a real product.
+
+## Adding products from your phone (/admin)
+
+`/admin/products` is a password-protected dashboard — open it from your
+phone's browser and it works the same as on a computer. It lets you check
+Instagram for new posts, turn them into products with a couple of taps
+(price, category, whether custom stitching is offered), and publish —
+no code changes or redeploy needed. Set it up once:
+
+1. **Redis (stores your products):** In Vercel → your project → **Storage**
+   → **Marketplace Database** → search **Redis** → install (the free tier
+   is plenty) → connect it to this project. Vercel adds the required
+   environment variables automatically.
+2. **Blob storage (keeps Instagram photos from expiring — optional but
+   recommended):** In Vercel → **Storage** → **Create Database** → **Blob**
+   → connect it to this project. Without this, a product photo pulled from
+   Instagram may stop loading after a while, since Instagram's own image
+   links are temporary.
+3. **Set a dashboard password:** add `ADMIN_PASSWORD=` (anything only you
+   know) to your environment variables in Vercel.
+4. **Redeploy.** Then visit `yourdomain.com/admin/login` and sign in.
+
+From there:
+- **Check Instagram for new posts** — pulls in anything you've posted that
+  isn't already a product, as a draft (photo + caption prefilled).
+- Open a draft, add a **price** and pick a **category**, tell it whether
+  **custom stitching** is available for that piece, then hit **Publish** —
+  it's live on the site immediately, no redeploy.
+- Anything already live can be edited or unpublished the same way from the
+  "Live on the site" section further down the page.
+
+Products added this way live in Redis rather than in `data/products.js` —
+that file still works as the starting catalog and as a fallback if Redis
+isn't connected yet, but once Redis is set up, the dashboard is the way to
+add, edit, or remove products going forward.
 
 ## Deploying
 

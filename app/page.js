@@ -1,28 +1,34 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { categories, products } from '@/data/products';
+import { categories } from '@/data/products';
+import { getAllProducts } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 import InstagramFeed from '@/components/InstagramFeed';
 import Testimonials from '@/components/Testimonials';
 import siteConfig from '@/components/SiteConfig';
 
-const heroImage = products[0].image;
+export const revalidate = 30;
 
-export default function HomePage() {
-  const featured = products.slice(0, 4);
+export default async function HomePage() {
+  const products = await getAllProducts();
+  const heroImage = products[0]?.image;
+  // Newest first, so newly published products actually show up here.
+  const featured = [...products].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
   return (
     <div>
       {/* Hero */}
       <section className="relative">
-        <div className="relative h-[70vh] min-h-[420px] w-full">
-          <Image
-            src={heroImage}
-            alt="Royale Designs by Preet featured piece"
-            fill
-            priority
-            className="object-cover object-top"
-          />
+        <div className="relative h-[70vh] min-h-[420px] w-full bg-cream-dark">
+          {heroImage && (
+            <Image
+              src={heroImage}
+              alt="Royale Designs by Preet featured piece"
+              fill
+              priority
+              className="object-cover object-top"
+            />
+          )}
           <div className="absolute inset-0 bg-forest-dark/40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
             <p className="uppercase tracking-[0.3em] text-cream/80 text-xs sm:text-sm mb-4">
