@@ -56,7 +56,7 @@ export async function POST(request) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: 1500, currency: 'aud' },
+            fixed_amount: { amount: 2000, currency: 'aud' },
             display_name: 'Standard Shipping — Australia',
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 5 },
@@ -67,7 +67,7 @@ export async function POST(request) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: 4500, currency: 'aud' },
+            fixed_amount: { amount: 5500, currency: 'aud' },
             display_name: 'International Shipping',
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 6 },
