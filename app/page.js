@@ -2,7 +2,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { categories, products } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
-import InstagramFeed from '@/components/InstagramFeed';   import Testimonials from '@/components/Testimonials';
+import InstagramFeed from '@/components/InstagramFeed';
+import Testimonials from '@/components/Testimonials';
 import siteConfig from '@/components/SiteConfig';
 
 const heroImage = products[0].image;
@@ -89,12 +90,15 @@ export default function HomePage() {
       </section>
 
       {/* Live Instagram feed — hides itself until INSTAGRAM_ACCESS_TOKEN is set */}
-      <InstagramFeed />   <Testimonials />
+      <InstagramFeed />
+
+      {/* Customer testimonials — curated from real Google reviews */}
+      <Testimonials />
 
       {/* Brand story + shipping */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h2 className="font-serif text-3xl text-forest-dark mb-4">Worldwide Shipping, Melbourne Made</h2>
-        <p className="text-forest/70 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-forest/80 max-w-2xl mx-auto leading-relaxed">
           Every piece is designed and finished in {siteConfig.location}, and we ship
           internationally to {siteConfig.shipsTo.slice(1).join(', ')}. Prices are shown
           in AUD by default — use the currency switcher in the header to preview an

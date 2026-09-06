@@ -44,7 +44,7 @@ export default function Header() {
             <span className="font-serif text-3xl sm:text-4xl lg:text-[42px] tracking-wide text-forest">
               {siteConfig.name}
             </span>
-            <span className="mt-1.5 font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-gold">
+            <span className="mt-1.5 font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-gold-dark">
               {siteConfig.motto}
             </span>
           </Link>
@@ -60,7 +60,7 @@ export default function Header() {
                 >
                   <Link
                     href={link.href}
-                    className={`hover:text-gold transition-colors ${pathname.startsWith('/shop') ? 'text-gold' : ''}`}
+                    className={`hover:text-gold transition-colors ${pathname.startsWith('/shop') ? 'text-gold-dark' : ''}`}
                   >
                     Shop
                   </Link>
@@ -82,7 +82,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`hover:text-gold transition-colors ${pathname === link.href ? 'text-gold' : ''}`}
+                  className={`hover:text-gold transition-colors ${pathname === link.href ? 'text-gold-dark' : ''}`}
                 >
                   {link.label}
                 </Link>
@@ -102,7 +102,7 @@ export default function Header() {
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
               {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gold text-cream text-[10px] leading-none rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-gold text-forest-dark text-[10px] leading-none rounded-full w-5 h-5 flex items-center justify-center">
                   {count}
                 </span>
               )}

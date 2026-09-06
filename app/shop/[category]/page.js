@@ -22,7 +22,7 @@ export default async function CategoryPage({ params }) {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
       <h1 className="font-serif text-4xl text-forest-dark mb-2">{category.label}</h1>
-      <p className="text-forest/60 mb-8">{items.length} piece{items.length === 1 ? '' : 's'}</p>
+      <p className="text-forest/80 mb-8">{items.length} piece{items.length === 1 ? '' : 's'}</p>
 
       <div className="flex flex-wrap gap-2 mb-10">
         <Link
@@ -47,7 +47,7 @@ export default async function CategoryPage({ params }) {
       </div>
 
       {items.length === 0 ? (
-        <p className="text-forest/60">No pieces in this category yet — check back soon.</p>
+        <p className="text-forest/80">No pieces in this category yet — check back soon.</p>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {items.map((p) => (

@@ -8,7 +8,7 @@ export default function ShopPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
       <h1 className="font-serif text-4xl text-forest-dark mb-2">Shop All</h1>
-      <p className="text-forest/60 mb-8">{products.length} pieces, handcrafted to order.</p>
+      <p className="text-forest/80 mb-8">{products.length} pieces, handcrafted to order.</p>
 
       <div className="flex flex-wrap gap-2 mb-10">
         <span className="px-4 py-1.5 rounded-full text-xs uppercase tracking-wide bg-forest text-cream">

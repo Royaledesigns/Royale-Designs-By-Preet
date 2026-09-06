@@ -26,7 +26,7 @@ export default function CustomTailoringPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="font-serif text-4xl text-forest-dark mb-6 text-center">Custom Tailoring</h1>
-      <p className="text-forest/70 leading-relaxed text-center mb-10 max-w-2xl mx-auto">
+      <p className="text-forest/80 leading-relaxed text-center mb-10 max-w-2xl mx-auto">
         Want a piece made to your exact measurements, in a different colourway, or entirely from
         scratch? Our custom tailoring service is separate from our ready-to-order collection and
         is built around you.
@@ -43,7 +43,7 @@ export default function CustomTailoringPage() {
 
       <div className="mt-16">
         <h2 className="font-serif text-2xl text-forest-dark mb-2 text-center">Size Chart</h2>
-        <p className="text-sm text-forest/60 text-center mb-6">
+        <p className="text-sm text-forest/80 text-center mb-6">
           Women&apos;s sizing, all measurements in inches. Between sizes, or not sure what to
           choose? Select &ldquo;Custom&rdquo; at checkout and we&apos;ll confirm your fit with you directly.
         </p>
@@ -88,8 +88,8 @@ export default function CustomTailoringPage() {
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {HOW_TO_MEASURE.map((item) => (
             <div key={item.part} className="flex gap-3">
-              <span className="font-serif text-lg text-gold flex-none w-24">{item.part}</span>
-              <span className="text-sm text-forest/70 leading-relaxed">{item.tip}</span>
+              <span className="font-serif text-lg text-gold-dark flex-none w-24">{item.part}</span>
+              <span className="text-sm text-forest/80 leading-relaxed">{item.tip}</span>
             </div>
           ))}
         </div>
@@ -97,7 +97,7 @@ export default function CustomTailoringPage() {
 
       <div className="mt-16">
         <h2 className="font-serif text-2xl text-forest-dark mb-2 text-center">Submit Your Measurements</h2>
-        <p className="text-sm text-forest/60 text-center mb-8 max-w-2xl mx-auto">
+        <p className="text-sm text-forest/80 text-center mb-8 max-w-2xl mx-auto">
           Know your numbers already? Fill this in and send it straight to us — we&apos;ll follow
           up by email to confirm fabric, embellishment and a quote.
         </p>
@@ -105,13 +105,13 @@ export default function CustomTailoringPage() {
       </div>
 
       <div className="text-center mt-16">
-        <p className="text-forest/70 mb-4">
+        <p className="text-forest/80 mb-4">
           Not ready with your measurements yet? Reach out and tell us what you have in mind.
         </p>
         <Link href="/contact" className="inline-block bg-forest text-cream px-8 py-3 uppercase text-sm tracking-widest hover:bg-forest-dark">
           Enquire Now
         </Link>
-        <p className="text-sm text-forest/50 mt-4">
+        <p className="text-sm text-forest/80 mt-4">
           Or email us directly at{' '}
           <a href={`mailto:${siteConfig.email}`} className="underline hover:text-gold">
             {siteConfig.email}

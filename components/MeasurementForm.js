@@ -69,7 +69,7 @@ export default function MeasurementForm() {
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">Name</label>
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Name</label>
           <input
             required
             type="text"
@@ -79,7 +79,7 @@ export default function MeasurementForm() {
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">Email</label>
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Email</label>
           <input
             required
             type="email"
@@ -91,7 +91,7 @@ export default function MeasurementForm() {
 
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">{f.label}</label>
+            <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">{f.label}</label>
             <input
               type="text"
               inputMode="decimal"
@@ -105,7 +105,7 @@ export default function MeasurementForm() {
       </div>
 
       <div className="mt-4">
-        <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">
+        <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
           Notes (colour, occasion, reference photo link, anything else)
         </label>
         <textarea

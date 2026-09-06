@@ -38,7 +38,7 @@ export default function CartPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 text-center">
         <h1 className="font-serif text-3xl text-forest-dark mb-4">Your cart is empty</h1>
-        <p className="text-forest/60 mb-8">Explore the collection and find your next favourite piece.</p>
+        <p className="text-forest/80 mb-8">Explore the collection and find your next favourite piece.</p>
         <Link href="/shop" className="inline-block bg-gold text-forest-dark px-8 py-3 uppercase text-sm tracking-widest hover:opacity-90">
           Shop Now
         </Link>
@@ -61,8 +61,8 @@ export default function CartPage() {
                 <Link href={`/product/${item.handle}`} className="font-serif text-lg text-forest-dark hover:text-gold">
                   {item.title}
                 </Link>
-                <p className="text-sm text-forest/50">Size: {item.size}</p>
-                <p className="text-sm text-forest/70 mt-1">
+                <p className="text-sm text-forest/80">Size: {item.size}</p>
+                <p className="text-sm text-forest/80 mt-1">
                   <Price amountAud={item.price} />
                 </p>
               </div>
@@ -86,7 +86,7 @@ export default function CartPage() {
                 </div>
                 <button
                   onClick={() => removeItem(item.key)}
-                  className="text-xs uppercase tracking-wide text-forest/40 hover:text-red-500"
+                  className="text-xs uppercase tracking-wide text-forest/80 hover:text-red-500"
                 >
                   Remove
                 </button>
@@ -98,9 +98,9 @@ export default function CartPage() {
 
       <div className="mt-10 flex flex-col items-end gap-4">
         <div className="text-right">
-          <p className="text-sm text-forest/50">Subtotal</p>
+          <p className="text-sm text-forest/80">Subtotal</p>
           <p className="font-serif text-2xl text-forest-dark">{formatMoney(subtotal, 'AUD')}</p>
-          <p className="text-xs text-forest/40">Shipping & any taxes calculated at checkout.</p>
+          <p className="text-xs text-forest/80">Shipping & any taxes calculated at checkout.</p>
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button

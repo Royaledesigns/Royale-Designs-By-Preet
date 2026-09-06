@@ -34,7 +34,7 @@ export default function InstagramFeed() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <h2 className="font-serif text-3xl text-forest-dark">Shop the Feed</h2>
-            <p className="text-sm text-forest/60 mt-1">Straight from Instagram — tap a photo to see the post.</p>
+            <p className="text-sm text-forest/80 mt-1">Straight from Instagram — tap a photo to see the post.</p>
           </div>
           <a
             href={siteConfig.social.instagram}

@@ -13,7 +13,7 @@ export default function Price({ amountAud, showEstimateNote = false, className =
     <span className={className}>
       {formatMoney(converted, currency)}
       {currency !== 'AUD' && showEstimateNote && (
-        <span className="block text-[11px] text-forest/50 font-sans normal-case">
+        <span className="block text-[11px] text-forest/80 font-sans normal-case">
           est. — charged as {formatMoney(amountAud, 'AUD')}
         </span>
       )}

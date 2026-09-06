@@ -16,7 +16,7 @@ export default function ProductCard({ product }) {
       </div>
       <div className="mt-3">
         <h3 className="font-serif text-lg text-forest-dark leading-snug">{product.title}</h3>
-        <p className="text-sm text-forest/60 mt-0.5">
+        <p className="text-sm text-forest/80 mt-0.5">
           <Price amountAud={product.price} />
         </p>
       </div>

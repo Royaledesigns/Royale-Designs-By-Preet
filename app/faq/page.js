@@ -45,7 +45,7 @@ export default function FaqPage() {
         {faqs.map((item) => (
           <div key={item.q} className="border-b border-forest/10 pb-6">
             <h2 className="font-serif text-xl text-forest-dark mb-2">{item.q}</h2>
-            <p className="text-forest/70 leading-relaxed">{item.a}</p>
+            <p className="text-forest/80 leading-relaxed">{item.a}</p>
           </div>
         ))}
       </div>

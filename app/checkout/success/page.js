@@ -18,7 +18,7 @@ export default function CheckoutSuccessPage() {
         ✓
       </div>
       <h1 className="font-serif text-4xl text-forest-dark mb-4">Thank you for your order!</h1>
-      <p className="text-forest/70 leading-relaxed">
+      <p className="text-forest/80 leading-relaxed">
         Your payment was successful and a confirmation has been sent to your email.
         Every piece is made to order, so please allow processing time before dispatch —
         we&apos;ll be in touch with tracking details once your order ships.

@@ -27,7 +27,7 @@ export default function AddToCartForm({ product }) {
   return (
     <div className="mt-6 space-y-5">
       <div>
-        <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">Size</label>
+        <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Size</label>
         <select
           value={size}
           onChange={(e) => setSize(e.target.value)}
@@ -42,7 +42,7 @@ export default function AddToCartForm({ product }) {
       </div>
 
       <div>
-        <label className="block text-xs uppercase tracking-wide text-forest/60 mb-1.5">Quantity</label>
+        <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Quantity</label>
         <div className="flex items-center border border-forest/20 rounded-sm w-fit">
           <button
             type="button"
@@ -79,7 +79,7 @@ export default function AddToCartForm({ product }) {
         </button>
       </div>
 
-      <p className="text-xs text-forest/50 pt-1">
+      <p className="text-xs text-forest/80 pt-1">
         Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
         tell us your measurements at checkout, or reach out on the{' '}
         <a href="/custom-tailoring" className="underline hover:text-gold">

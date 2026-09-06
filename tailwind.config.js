@@ -21,7 +21,13 @@ module.exports = {
           DEFAULT: '#faf6ef',
           dark: '#f0e9db',
         },
-        gold: '#b98b3e',
+        // Slightly deepened from the original #b98b3e so forest-dark button
+        // text (bg-gold buttons) clears WCAG AA contrast (was 4.2:1, now 5:1+).
+        gold: '#c89a44',
+        // Darker gold for small/body text on light backgrounds — even this
+        // deepened gold still fails WCAG AA contrast at small text sizes,
+        // so text-gold-dark is used instead for text (not buttons).
+        'gold-dark': '#8a6427',
       },
       fontFamily: {
         serif: ['Cormorant Garamond', 'Georgia', 'serif'],

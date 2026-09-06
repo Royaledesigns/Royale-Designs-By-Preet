@@ -19,7 +19,7 @@ export default function ShippingReturnsPage() {
             <li>Standard Shipping (Australia): estimated 5–10 business days from dispatch.</li>
             <li>International Shipping: estimated 10–21 business days from dispatch, depending on destination and customs processing.</li>
           </ul>
-          <p className="mt-3 text-sm text-forest/50">
+          <p className="mt-3 text-sm text-forest/80">
             International orders may be subject to customs duties or import taxes charged by the
             destination country — these are the responsibility of the customer and are not
             included in the checkout total.
