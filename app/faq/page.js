@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'Can I get a piece custom made or altered?',
-    a: 'Yes — choose "Custom" as your size on any product page, or visit our Custom Tailoring page to start a bespoke order.',
+    a: 'Yes — choose "Custom" as your size on any product page, or visit our Custom Made For You page to start your order.',
   },
   {
     q: 'How long will my order take?',

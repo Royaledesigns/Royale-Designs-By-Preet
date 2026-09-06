@@ -26,11 +26,11 @@ export default function AboutPage() {
           UK, New Zealand and Europe.
         </p>
         <p>
-          Alongside our ready-to-order collection, we also offer a dedicated custom tailoring
+          Alongside our ready-to-order collection, we also offer a dedicated Custom Made For You
           service for customers who want a piece made to their exact measurements or with a
           personal touch — see our{' '}
           <a href="/custom-tailoring" className="underline hover:text-gold">
-            Custom Tailoring
+            Custom Made For You
           </a>{' '}
           page to get started.
         </p>

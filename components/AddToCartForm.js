@@ -83,7 +83,7 @@ export default function AddToCartForm({ product }) {
         Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
         tell us your measurements at checkout, or reach out on the{' '}
         <a href="/custom-tailoring" className="underline hover:text-gold">
-          Custom Tailoring
+          Custom Made For You
         </a>{' '}
         page first.
       </p>

@@ -54,7 +54,7 @@ export default function ShippingReturnsPage() {
           <p>
             Because every piece is handcrafted, please check measurements, colours and details
             carefully before ordering, or contact us first if you have any questions. This
-            applies to every order, including custom tailoring and made-to-measure pieces.
+            applies to every order, including Custom Made For You and made-to-measure pieces.
           </p>
         </section>
 

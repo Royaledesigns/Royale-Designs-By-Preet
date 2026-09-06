@@ -58,7 +58,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-cream/80">
             <li><Link href="/shipping-returns" className="hover:text-gold">Shipping & Returns</Link></li>
             <li><Link href="/faq" className="hover:text-gold">FAQ</Link></li>
-            <li><Link href="/custom-tailoring" className="hover:text-gold">Custom Tailoring</Link></li>
+            <li><Link href="/custom-tailoring" className="hover:text-gold">Custom Made For You</Link></li>
             <li><Link href="/contact" className="hover:text-gold">Contact Us</Link></li>
             <li><a href={`mailto:${siteConfig.email}`} className="hover:text-gold">{siteConfig.email}</a></li>
           </ul>

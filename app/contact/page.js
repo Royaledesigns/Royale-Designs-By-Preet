@@ -9,7 +9,7 @@ export default function ContactPage() {
       <div>
         <h1 className="font-serif text-4xl text-forest-dark mb-6">Get in Touch</h1>
         <p className="text-forest/80 leading-relaxed mb-8">
-          Questions about a piece, an order, or custom tailoring? Send us a message and
+          Questions about a piece, an order, or our Custom Made For You service? Send us a message and
           we&apos;ll reply as soon as we can.
         </p>
         <div className="space-y-2 text-forest-dark text-sm">

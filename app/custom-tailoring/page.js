@@ -2,7 +2,7 @@ import Link from 'next/link';
 import siteConfig from '@/components/SiteConfig';
 import MeasurementForm from '@/components/MeasurementForm';
 
-export const metadata = { title: 'Custom Tailoring | Royale Designs by Preet' };
+export const metadata = { title: 'Custom Made For You | Royale Designs by Preet' };
 
 // Women's size chart — all measurements in inches. Update here if your
 // sizing ever changes; the table below is generated from this data.
@@ -25,7 +25,7 @@ const HOW_TO_MEASURE = [
 export default function CustomTailoringPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
-      <h1 className="font-serif text-4xl text-forest-dark mb-6 text-center">Custom Tailoring</h1>
+      <h1 className="font-serif text-4xl text-forest-dark mb-6 text-center">Custom Made For You</h1>
       <p className="text-forest/80 leading-relaxed text-center mb-10 max-w-2xl mx-auto">
         Want a piece made to your exact measurements or with your own colour and fabric
         preferences? Choose any design from our collection and we&apos;ll custom stitch it just

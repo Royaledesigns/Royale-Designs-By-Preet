@@ -10,7 +10,7 @@ import siteConfig from './SiteConfig';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/shop', label: 'Shop' },
-  { href: '/custom-tailoring', label: 'Custom Tailoring' },
+  { href: '/custom-tailoring', label: 'Custom Made For You' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
