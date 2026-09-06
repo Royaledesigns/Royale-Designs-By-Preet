@@ -11,13 +11,33 @@ export default function ShippingReturnsPage() {
         <section>
           <h2 className="font-serif text-2xl text-forest-dark mb-3">Shipping</h2>
           <p className="mb-3">
-            We ship worldwide from {siteConfig.location} to {siteConfig.shipsTo.join(', ')}.
+            Each piece is thoughtfully customised for you, with our team based in
+            {' '}{siteConfig.location}. We currently deliver to {siteConfig.shipsTo.join(', ')}.
             Every piece is made to order, so please allow processing time before your order is
             dispatched — you&apos;ll receive tracking details by email as soon as it ships.
           </p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Standard Shipping (Australia): estimated 5–10 business days from dispatch.</li>
-            <li>International Shipping: estimated 10–21 business days from dispatch, depending on destination and customs processing.</li>
+            <li>Standard Shipping (Australia): estimated 5–7 business days from dispatch.</li>
+            <li>
+              Express Shipping (Australia): estimated 1–4 business days from dispatch — message us
+              on{' '}
+              <a href={siteConfig.social.whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-gold">
+                WhatsApp
+              </a>{' '}
+              for availability and pricing.
+            </li>
+            <li>
+              International Standard Shipping: estimated 6–9 business days from dispatch, depending on
+              destination and customs processing.
+            </li>
+            <li>
+              International Express Shipping: estimated 3–6 business days from dispatch — message us
+              on{' '}
+              <a href={siteConfig.social.whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-gold">
+                WhatsApp
+              </a>{' '}
+              for availability and pricing.
+            </li>
           </ul>
           <p className="mt-3 text-sm text-forest/80">
             International orders may be subject to customs duties or import taxes charged by the

@@ -5,11 +5,11 @@ export const metadata = { title: 'FAQ | Royale Designs by Preet' };
 const faqs = [
   {
     q: 'Where are your pieces made?',
-    a: `Every piece is designed and finished by ${siteConfig.name}, based in ${siteConfig.location}.`,
+    a: `Every piece is thoughtfully customised for you, with ${siteConfig.name} based in ${siteConfig.location}.`,
   },
   {
     q: 'Do you ship internationally?',
-    a: `Yes — we ship to ${siteConfig.shipsTo.join(', ')}. Select your country at checkout to see shipping options.`,
+    a: `We currently deliver to ${siteConfig.shipsTo.join(', ')} — select your country at checkout to see shipping options.`,
   },
   {
     q: 'What currency am I charged in?',
@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: 'How long will my order take?',
-    a: 'Every piece is made to order, so please allow processing time before dispatch. Once shipped, Australian orders typically arrive in 5–10 business days and international orders in 10–21 business days.',
+    a: 'Every piece is made to order, so please allow processing time before dispatch. Once shipped, Australian orders typically arrive in 5–7 business days with Standard Shipping or 1–4 business days with Express Shipping, and international orders in 6–9 business days with Standard Shipping or 3–6 business days with Express Shipping. Message us on WhatsApp for Express pricing and availability.',
   },
   {
     q: 'What is your returns policy?',

@@ -32,8 +32,8 @@ export default function HomePage() {
               Where Heritage Meets Elegance
             </h1>
             <p className="text-cream/80 mt-4 max-w-xl text-sm sm:text-base">
-              Lehengas, gharara sets, sharara sets, anarkalis & suits — designed in
-              Melbourne, shipped worldwide.
+              Lehengas, gharara sets, sharara sets, anarkalis & suits — thoughtfully
+              customised for you, with our home based in Melbourne.
             </p>
             <Link
               href="/shop"
@@ -97,12 +97,12 @@ export default function HomePage() {
 
       {/* Brand story + shipping */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <h2 className="font-serif text-3xl text-forest-dark mb-4">Worldwide Shipping, Melbourne Made</h2>
+        <h2 className="font-serif text-3xl text-forest-dark mb-4">Thoughtfully Customised, Based in Melbourne</h2>
         <p className="text-forest/80 max-w-2xl mx-auto leading-relaxed">
-          Every piece is designed and finished in {siteConfig.location}, and we ship
-          internationally to {siteConfig.shipsTo.slice(1).join(', ')}. Prices are shown
-          in AUD by default — use the currency switcher in the header to preview an
-          estimate in your own currency.
+          Every piece is thoughtfully customised for you, with our home based in
+          {' '}{siteConfig.location}. We currently deliver to {siteConfig.shipsTo.join(', ')}.
+          Prices are shown in AUD by default — use the currency switcher in the header to
+          preview an estimate in your own currency.
         </p>
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           {siteConfig.shipsTo.map((country) => (

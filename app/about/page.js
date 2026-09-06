@@ -14,10 +14,10 @@ export default function AboutPage() {
       <div className="prose prose-lg max-w-none text-forest/80 leading-relaxed space-y-5">
         <p>
           {siteConfig.name} is a premium South Asian bridal and ethnic wear brand based in{' '}
-          {siteConfig.location}. We design and finish every lehenga, gharara set, sharara set,
-          anarkali and suit with a focus on rich embellishment, considered detailing, and pieces
-          that feel special enough for the moments that matter — sangeet, reception, Karwachauth,
-          Jaggo, and every celebration in between.
+          {siteConfig.location}. Every lehenga, gharara set, sharara set, anarkali and suit is
+          thoughtfully customised for you, with a focus on rich embellishment, considered
+          detailing, and pieces that feel special enough for the moments that matter — sangeet,
+          reception, Karwachauth, Jaggo, and every celebration in between.
         </p>
         <p>
           What started as a close, hands-on operation has grown into a brand our customers

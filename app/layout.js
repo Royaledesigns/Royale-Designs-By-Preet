@@ -8,7 +8,7 @@ import siteConfig from '@/components/SiteConfig';
 export const metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description:
-    'Handcrafted lehengas, gharara sets, sharara sets, anarkalis and suits, shipped worldwide from Melbourne, Australia.',
+    'Premium South Asian bridal & ethnic wear, thoughtfully customised for you and delivered to Australia, the USA, Canada, the United Kingdom, New Zealand and Europe.',
 };
 
 export default function RootLayout({ children }) {

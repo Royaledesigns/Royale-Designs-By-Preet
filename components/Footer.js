@@ -35,8 +35,8 @@ export default function Footer() {
           <h3 className="font-serif text-2xl mb-1">{siteConfig.name}</h3>
           <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-blush mb-4">{siteConfig.motto}</p>
           <p className="text-cream/70 text-sm leading-relaxed">
-            {siteConfig.tagline}, handcrafted in {siteConfig.location} and shipped
-            to doorsteps across {siteConfig.shipsTo.slice(1).join(', ')}.
+            {siteConfig.tagline}, thoughtfully customised for you with our home based in{' '}
+            {siteConfig.location}, delivering to {siteConfig.shipsTo.join(', ')}.
           </p>
         </div>
 

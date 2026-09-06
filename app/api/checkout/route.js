@@ -60,7 +60,7 @@ export async function POST(request) {
             display_name: 'Standard Shipping — Australia',
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 5 },
-              maximum: { unit: 'business_day', value: 10 },
+              maximum: { unit: 'business_day', value: 7 },
             },
           },
         },
@@ -70,8 +70,8 @@ export async function POST(request) {
             fixed_amount: { amount: 4500, currency: 'aud' },
             display_name: 'International Shipping',
             delivery_estimate: {
-              minimum: { unit: 'business_day', value: 10 },
-              maximum: { unit: 'business_day', value: 21 },
+              minimum: { unit: 'business_day', value: 6 },
+              maximum: { unit: 'business_day', value: 9 },
             },
           },
         },

@@ -66,7 +66,7 @@ export default async function ProductPage({ params }) {
 
           <div className="mt-8 border-t border-forest/10 pt-6 text-sm text-forest/80 space-y-1">
             <p>✓ Made to order — please allow processing time before dispatch.</p>
-            <p>✓ Ships worldwide from Melbourne, Australia.</p>
+            <p>✓ Thoughtfully customised for you and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.</p>
             <p>✓ All sales are final — please review sizing &amp; colour details carefully.</p>
             <p>
               ✓ See our <Link href="/shipping-returns" className="underline hover:text-gold">shipping & returns policy</Link> for details.
