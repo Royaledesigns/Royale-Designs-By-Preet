@@ -1,4 +1,3 @@
-nials · JS
 // Static, hand-curated selection of real Google reviews for Royale Designs by
 // Preet. These are complete, verbatim quotes (nothing truncated or invented) —
 // when adding more later, only pull ones where you can see the full review
@@ -39,7 +38,7 @@ const testimonials = [
     when: '43 weeks ago',
   },
 ];
- 
+
 function StarRow() {
   return (
     <div className="flex gap-0.5 text-gold" aria-label="5 out of 5 stars">
@@ -51,7 +50,7 @@ function StarRow() {
     </div>
   );
 }
- 
+
 export default function Testimonials() {
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
@@ -83,4 +82,3 @@ export default function Testimonials() {
     </section>
   );
 }
- 
