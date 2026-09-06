@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { categories, products } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
-import InstagramFeed from '@/components/InstagramFeed';
+import InstagramFeed from '@/components/InstagramFeed';   import Testimonials from '@/components/Testimonials';
 import siteConfig from '@/components/SiteConfig';
 
 const heroImage = products[0].image;
@@ -89,7 +89,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Instagram feed — hides itself until INSTAGRAM_ACCESS_TOKEN is set */}
-      <InstagramFeed />
+      <InstagramFeed />   <Testimonials />
 
       {/* Brand story + shipping */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-20 text-center">
