@@ -17,6 +17,7 @@ function emptyForm(product) {
     // choose the 1-2 ready sizes yourself; anything left unchecked shows
     // greyed out on the site, with Custom left as the fallback.
     availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
+    soldOut: product.soldOut || false,
     image: product.image,
     status: product.status,
     source: product.source,
@@ -93,6 +94,13 @@ function ProductCard({ product, onSaved, onDeleted }) {
     <div className="border border-forest/15 rounded-sm bg-white p-4 flex flex-col sm:flex-row gap-4">
       <div className="relative w-full sm:w-32 aspect-[3/4] sm:aspect-square flex-none rounded-sm overflow-hidden bg-cream-dark">
         {form.image && <Image src={form.image} alt={form.title} fill className="object-cover" unoptimized />}
+        {form.soldOut && (
+          <div className="absolute inset-0 bg-forest-dark/50 flex items-center justify-center">
+            <span className="text-cream text-xs uppercase tracking-widest border border-cream px-2 py-1">
+              Sold Out
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 space-y-3">
@@ -100,16 +108,29 @@ function ProductCard({ product, onSaved, onDeleted }) {
           <span className="text-[10px] uppercase tracking-widest text-gold-dark">
             {product.source === 'instagram' ? 'From Instagram' : 'Manual'} · {product.status}
           </span>
-          {product.instagramPermalink && (
-            <a
-              href={product.instagramPermalink}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] underline text-forest/80 hover:text-gold"
+          <div className="flex items-center gap-3">
+            {product.instagramPermalink && (
+              <a
+                href={product.instagramPermalink}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] underline text-forest/80 hover:text-gold"
+              >
+                View post
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => set('soldOut', !form.soldOut)}
+              className={`text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-sm border transition-colors ${
+                form.soldOut
+                  ? 'bg-red-700 text-cream border-red-700'
+                  : 'border-forest/20 text-forest/70 hover:bg-cream-dark'
+              }`}
             >
-              View post
-            </a>
-          )}
+              {form.soldOut ? 'Sold out' : 'Mark sold out'}
+            </button>
+          </div>
         </div>
 
         <div>

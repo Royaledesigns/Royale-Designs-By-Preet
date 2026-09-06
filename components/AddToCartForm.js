@@ -37,6 +37,23 @@ export default function AddToCartForm({ product }) {
     router.push('/cart');
   };
 
+  if (product.soldOut) {
+    return (
+      <div className="mt-6 space-y-4">
+        <p className="inline-block bg-forest-dark text-cream text-xs uppercase tracking-widest px-3 py-1.5">
+          Sold Out
+        </p>
+        <p className="text-sm text-forest/80">
+          This piece has found its home and is no longer available. Love the look? Reach out on{' '}
+          <a href="/contact" className="underline hover:text-gold">
+            WhatsApp
+          </a>{' '}
+          — we may be able to recreate something similar as a custom stitch.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 space-y-5">
       <div>

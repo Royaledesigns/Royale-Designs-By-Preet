@@ -21,7 +21,7 @@ export async function POST(request) {
       );
     }
     const hasSizes = Array.isArray(body.availableSizes) && body.availableSizes.length > 0;
-    if (body.status === 'published' && !hasSizes && body.customStitch === false) {
+    if (body.status === 'published' && !body.soldOut && !hasSizes && body.customStitch === false) {
       return NextResponse.json(
         {
           error:
