@@ -8,6 +8,8 @@ export const categories = [
   { slug: 'sharara-sets', label: 'Sharara Sets' },
   { slug: 'anarkalis', label: 'Anarkalis' },
   { slug: 'suits', label: 'Suits' },
+  { slug: 'heels-punjabi-jutti', label: 'Heels & Punjabi Jutti' },
+  { slug: 'antique-modern-jewellery', label: 'Antique & Modern Jewellery' },
 ];
 
 export const products = [
