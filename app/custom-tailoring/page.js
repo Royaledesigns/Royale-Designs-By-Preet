@@ -27,17 +27,17 @@ export default function CustomTailoringPage() {
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="font-serif text-4xl text-forest-dark mb-6 text-center">Custom Tailoring</h1>
       <p className="text-forest/80 leading-relaxed text-center mb-10 max-w-2xl mx-auto">
-        Want a piece made to your exact measurements, in a different colourway, or entirely from
-        scratch? Our custom tailoring service is separate from our ready-to-order collection and
-        is built around you.
+        Want a piece made to your exact measurements or with your own colour and fabric
+        preferences? Choose any design from our collection and we&apos;ll custom stitch it just
+        for you.
       </p>
 
       <div className="bg-cream-dark/60 rounded-sm p-8 space-y-4 text-forest-dark max-w-2xl mx-auto">
         <h2 className="font-serif text-2xl mb-2">How it works</h2>
         <ol className="list-decimal list-inside space-y-2 text-forest/80">
-          <li>Send us your idea — a reference photo, colour palette, or occasion you&apos;re dressing for.</li>
-          <li>We&apos;ll confirm your measurements, fabric and embellishment options, and a quote.</li>
-          <li>Your piece is hand-finished to order and shipped to you, tracked, wherever you are.</li>
+          <li>Browse our shop and pick the outfit you&apos;d like — every design in our collection can be custom stitched for you.</li>
+          <li>Send us your measurements and preferences — colour, fabric and embellishment options for that design.</li>
+          <li>Your piece is custom stitched to order and shipped to you, tracked, wherever you are.</li>
         </ol>
       </div>
 
