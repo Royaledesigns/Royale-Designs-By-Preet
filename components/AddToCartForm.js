@@ -3,11 +3,24 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
+import { ALL_SIZES } from '@/data/products';
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'Custom (contact us for measurements)'];
+const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 
 export default function AddToCartForm({ product }) {
-  const [size, setSize] = useState(SIZES[2]);
+  // Legacy products (seeded before this feature existed) have every size
+  // available; new ones default to none until the admin marks the sizes
+  // that are actually ready-made.
+  const availableSizes =
+    Array.isArray(product.availableSizes) && product.availableSizes.length > 0
+      ? product.availableSizes
+      : product.availableSizes === undefined
+        ? ALL_SIZES
+        : [];
+  const customStitchAvailable = product.customStitch !== false;
+  const defaultSize = availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : ALL_SIZES[0]);
+
+  const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
@@ -33,11 +46,19 @@ export default function AddToCartForm({ product }) {
           onChange={(e) => setSize(e.target.value)}
           className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
         >
-          {SIZES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
+          {ALL_SIZES.map((s) => {
+            const isAvailable = availableSizes.includes(s);
+            return (
+              <option key={s} value={s} disabled={!isAvailable}>
+                {s}
+                {!isAvailable ? ' — order as custom' : ''}
+              </option>
+            );
+          })}
+          <option value={CUSTOM_SIZE} disabled={!customStitchAvailable}>
+            {CUSTOM_SIZE}
+            {!customStitchAvailable ? ' — unavailable' : ''}
+          </option>
         </select>
       </div>
 

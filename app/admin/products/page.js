@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { categories } from '@/data/products';
+import { categories, ALL_SIZES } from '@/data/products';
 
 function emptyForm(product) {
   return {
@@ -13,6 +13,10 @@ function emptyForm(product) {
     price: product.price ?? '',
     description: product.description || '',
     customStitch: product.customStitch !== false,
+    // Which sizes are actually made for this piece — starts empty so you
+    // choose the 1-2 ready sizes yourself; anything left unchecked shows
+    // greyed out on the site, with Custom left as the fallback.
+    availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
     image: product.image,
     status: product.status,
     source: product.source,
@@ -29,6 +33,16 @@ function ProductCard({ product, onSaved, onDeleted }) {
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function toggleSize(size) {
+    setForm((f) => {
+      const isActive = f.availableSizes.includes(size);
+      const availableSizes = isActive
+        ? f.availableSizes.filter((s) => s !== size)
+        : [...f.availableSizes, size];
+      return { ...f, availableSizes };
+    });
   }
 
   async function save(nextStatus) {
@@ -145,6 +159,36 @@ function ProductCard({ product, onSaved, onDeleted }) {
             rows={2}
             className="w-full border border-forest/20 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold"
           />
+        </div>
+
+        <div>
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
+            Sizes ready to ship
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {ALL_SIZES.map((s) => {
+              const active = form.availableSizes.includes(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => toggleSize(s)}
+                  aria-pressed={active}
+                  className={`px-3.5 py-1.5 text-xs uppercase tracking-wide rounded-sm border transition-colors ${
+                    active
+                      ? 'bg-forest text-cream border-forest'
+                      : 'bg-cream-dark/50 text-forest/40 border-forest/15 hover:text-forest/70'
+                  }`}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-forest/60 mt-1.5">
+            Tap a size to mark it ready-made (shown active on the site). Sizes left grey show as
+            unavailable, so shoppers know to order those as a custom stitch instead.
+          </p>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-forest-dark">

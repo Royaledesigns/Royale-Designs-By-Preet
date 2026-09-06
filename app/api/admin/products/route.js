@@ -20,6 +20,16 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    const hasSizes = Array.isArray(body.availableSizes) && body.availableSizes.length > 0;
+    if (body.status === 'published' && !hasSizes && body.customStitch === false) {
+      return NextResponse.json(
+        {
+          error:
+            'Mark at least one size as available, or leave custom stitch on, before publishing.',
+        },
+        { status: 400 }
+      );
+    }
     const record = await upsertProduct(body);
     return NextResponse.json({ product: record });
   } catch (err) {

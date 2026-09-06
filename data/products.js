@@ -2,6 +2,12 @@
 // (royale-designs-5517.myshopify.com) on 2026-09-05.
 // Add new pieces here as you create them — each object is one product.
 
+// The full set of sizes the storefront offers. A product's own
+// `availableSizes` is the subset currently made/in stock for that piece —
+// the rest show up greyed out on the product page, with only "Custom" left
+// selectable so shoppers know to order those sizes as a custom stitch.
+export const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+
 export const categories = [
   { slug: 'lehengas', label: 'Lehengas' },
   { slug: 'gharara-sets', label: 'Gharara Sets' },
