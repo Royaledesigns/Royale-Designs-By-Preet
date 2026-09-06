@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { ALL_SIZES } from '@/data/products';
+import siteConfig from './SiteConfig';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 
@@ -44,12 +45,17 @@ export default function AddToCartForm({ product }) {
           Sold Out
         </p>
         <p className="text-sm text-forest/80">
-          This piece has found its home and is no longer available. Love the look? Reach out on{' '}
-          <a href="/contact" className="underline hover:text-gold">
-            WhatsApp
-          </a>{' '}
-          — we may be able to recreate something similar as a custom stitch.
+          This piece has found its home and is no longer available. Love the look? We may be able
+          to recreate something similar as a custom stitch.
         </p>
+        <a
+          href={siteConfig.social.whatsapp}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block bg-gold text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+        >
+          Reach Out on WhatsApp
+        </a>
       </div>
     );
   }
