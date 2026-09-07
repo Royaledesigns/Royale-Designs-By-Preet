@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
-import { ALL_SIZES } from '@/data/products';
+import { getSizesForCategory } from '@/data/products';
 import siteConfig from './SiteConfig';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 
 export default function AddToCartForm({ product }) {
+  // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti, which
+  // uses EU shoe sizes.
+  const sizeOptions = getSizesForCategory(product.category);
+
   // Legacy products (seeded before this feature existed) have every size
   // available; new ones default to none until the admin marks the sizes
   // that are actually ready-made.
@@ -16,10 +20,10 @@ export default function AddToCartForm({ product }) {
     Array.isArray(product.availableSizes) && product.availableSizes.length > 0
       ? product.availableSizes
       : product.availableSizes === undefined
-        ? ALL_SIZES
+        ? sizeOptions
         : [];
   const customStitchAvailable = product.customStitch !== false;
-  const defaultSize = availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : ALL_SIZES[0]);
+  const defaultSize = availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : sizeOptions[0]);
 
   const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
@@ -69,7 +73,7 @@ export default function AddToCartForm({ product }) {
           onChange={(e) => setSize(e.target.value)}
           className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
         >
-          {ALL_SIZES.map((s) => {
+          {sizeOptions.map((s) => {
             const isAvailable = availableSizes.includes(s);
             return (
               <option key={s} value={s} disabled={!isAvailable}>
