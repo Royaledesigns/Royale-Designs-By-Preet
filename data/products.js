@@ -11,6 +11,20 @@ export const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 // Heels & Punjabi Jutti use European shoe sizing instead of clothing sizes.
 export const SHOE_SIZES = ['34', '35', '36', '37', '38', '39', '40', '41', '42'];
 
+// Jewellery categories aren't sized at all — no size picker shows for these.
+export const JEWELLERY_CATEGORIES = [
+  'antique-modern-jewellery',
+  'kashmiri-earrings',
+  'traditional-punjabi-jewellery-sets',
+  'rings',
+  'anklets',
+  'bangles',
+];
+
+export function isJewelleryCategory(category) {
+  return JEWELLERY_CATEGORIES.includes(category);
+}
+
 // Which size set applies to a given product category — clothing sizes
 // everywhere except footwear, which uses EU shoe sizes.
 export function getSizesForCategory(category) {
@@ -18,13 +32,21 @@ export function getSizesForCategory(category) {
 }
 
 export const categories = [
+  { slug: 'bridal-wear-outfits', label: 'Bridal Wear Outfits' },
   { slug: 'lehengas', label: 'Lehengas' },
-  { slug: 'gharara-sets', label: 'Gharara Sets' },
-  { slug: 'sharara-sets', label: 'Sharara Sets' },
+  { slug: 'gharara-sets', label: 'Gharara' },
+  { slug: 'sharara-sets', label: 'Sharara' },
   { slug: 'anarkalis', label: 'Anarkalis' },
-  { slug: 'suits', label: 'Suits' },
+  { slug: 'suits', label: 'Partywear Suits' },
+  { slug: 'casual-wear-suits', label: 'Casual Wear Suits' },
+  { slug: 'pakistani-mirror-dupattas', label: 'Pakistani Mirror Dupattas' },
   { slug: 'heels-punjabi-jutti', label: 'Heels & Punjabi Jutti' },
   { slug: 'antique-modern-jewellery', label: 'Antique & Modern Jewellery' },
+  { slug: 'kashmiri-earrings', label: 'Kashmiri Earrings' },
+  { slug: 'traditional-punjabi-jewellery-sets', label: 'Traditional Punjabi Jewellery Sets' },
+  { slug: 'rings', label: 'Rings' },
+  { slug: 'anklets', label: 'Anklets' },
+  { slug: 'bangles', label: 'Bangles' },
 ];
 
 export const products = [
