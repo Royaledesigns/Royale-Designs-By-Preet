@@ -11,6 +11,7 @@ const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 export default function AddToCartForm({ product }) {
   // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti, which
   // uses EU shoe sizes.
+  const isFootwear = product.category === 'heels-punjabi-jutti';
   const sizeOptions = getSizesForCategory(product.category);
 
   // Legacy products (seeded before this feature existed) have every size
@@ -22,7 +23,9 @@ export default function AddToCartForm({ product }) {
       : product.availableSizes === undefined
         ? sizeOptions
         : [];
-  const customStitchAvailable = product.customStitch !== false;
+  // Shoes are made in fixed EU sizes only — no custom stitching, so there's
+  // no "Custom" fallback option for this category.
+  const customStitchAvailable = !isFootwear && product.customStitch !== false;
   const defaultSize = availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : sizeOptions[0]);
 
   const [size, setSize] = useState(defaultSize);
@@ -82,10 +85,12 @@ export default function AddToCartForm({ product }) {
               </option>
             );
           })}
-          <option value={CUSTOM_SIZE} disabled={!customStitchAvailable}>
-            {CUSTOM_SIZE}
-            {!customStitchAvailable ? ' — unavailable' : ''}
-          </option>
+          {!isFootwear && (
+            <option value={CUSTOM_SIZE} disabled={!customStitchAvailable}>
+              {CUSTOM_SIZE}
+              {!customStitchAvailable ? ' — unavailable' : ''}
+            </option>
+          )}
         </select>
       </div>
 
@@ -127,7 +132,7 @@ export default function AddToCartForm({ product }) {
         </button>
       </div>
 
-      {product.customStitch !== false && (
+      {customStitchAvailable && (
         <p className="text-xs text-forest/80 pt-1">
           Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
           tell us your measurements at checkout, or reach out on the{' '}
