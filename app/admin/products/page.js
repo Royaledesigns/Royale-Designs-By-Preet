@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { categories, getSizesForCategory } from '@/data/products';
+import { categories, getSizesForCategory, isJewelleryCategory } from '@/data/products';
 
 function emptyForm(product) {
   return {
@@ -31,6 +31,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const isDraft = product.status === 'draft';
+  const isJewellery = isJewelleryCategory(form.category);
   const sizeOptions = getSizesForCategory(form.category);
 
   function set(field, value) {
@@ -189,44 +190,48 @@ function ProductCard({ product, onSaved, onDeleted }) {
           />
         </div>
 
-        <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
-            Sizes ready to ship
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {sizeOptions.map((s) => {
-              const active = form.availableSizes.includes(s);
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => toggleSize(s)}
-                  aria-pressed={active}
-                  className={`px-3.5 py-1.5 text-xs uppercase tracking-wide rounded-sm border transition-colors ${
-                    active
-                      ? 'bg-forest text-cream border-forest'
-                      : 'bg-cream-dark/50 text-forest/40 border-forest/15 hover:text-forest/70'
-                  }`}
-                >
-                  {s}
-                </button>
-              );
-            })}
+        {!isJewellery && (
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
+              Sizes ready to ship
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {sizeOptions.map((s) => {
+                const active = form.availableSizes.includes(s);
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => toggleSize(s)}
+                    aria-pressed={active}
+                    className={`px-3.5 py-1.5 text-xs uppercase tracking-wide rounded-sm border transition-colors ${
+                      active
+                        ? 'bg-forest text-cream border-forest'
+                        : 'bg-cream-dark/50 text-forest/40 border-forest/15 hover:text-forest/70'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-forest/60 mt-1.5">
+              Tap a size to mark it ready-made (shown active on the site). Sizes left grey show as
+              unavailable, so shoppers know to order those as a custom stitch instead.
+            </p>
           </div>
-          <p className="text-[11px] text-forest/60 mt-1.5">
-            Tap a size to mark it ready-made (shown active on the site). Sizes left grey show as
-            unavailable, so shoppers know to order those as a custom stitch instead.
-          </p>
-        </div>
+        )}
 
-        <label className="flex items-center gap-2 text-sm text-forest-dark">
-          <input
-            type="checkbox"
-            checked={form.customStitch}
-            onChange={(e) => set('customStitch', e.target.checked)}
-          />
-          Custom stitch available for this piece
-        </label>
+        {!isJewellery && (
+          <label className="flex items-center gap-2 text-sm text-forest-dark">
+            <input
+              type="checkbox"
+              checked={form.customStitch}
+              onChange={(e) => set('customStitch', e.target.checked)}
+            />
+            Custom stitch available for this piece
+          </label>
+        )}
 
         {error && <p className="text-sm text-red-700">{error}</p>}
 
