@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { categories, ALL_SIZES } from '@/data/products';
+import { categories, getSizesForCategory } from '@/data/products';
 
 function emptyForm(product) {
   return {
@@ -31,8 +31,15 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const isDraft = product.status === 'draft';
+  const sizeOptions = getSizesForCategory(form.category);
 
   function set(field, value) {
+    if (field === 'category') {
+      // Clothing sizes and EU shoe sizes don't overlap — clear whatever was
+      // ticked so a stale size from the old category can't stick around.
+      setForm((f) => ({ ...f, category: value, availableSizes: [] }));
+      return;
+    }
     setForm((f) => ({ ...f, [field]: value }));
   }
 
@@ -187,7 +194,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
             Sizes ready to ship
           </label>
           <div className="flex flex-wrap gap-2">
-            {ALL_SIZES.map((s) => {
+            {sizeOptions.map((s) => {
               const active = form.availableSizes.includes(s);
               return (
                 <button
