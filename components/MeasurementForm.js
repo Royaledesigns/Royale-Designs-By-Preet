@@ -1,13 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import siteConfig from './SiteConfig';
+
+// wa.me wants a bare international number — strip the "+" and any spaces
+// from the display-formatted phone in SiteConfig.
+const WHATSAPP_NUMBER = siteConfig.phone.replace(/[^\d]/g, '');
 
 const FIELDS = [
-  { key: 'chest', label: 'Chest (in)' },
-  { key: 'waist', label: 'Waist (in)' },
-  { key: 'hip', label: 'Hip (in)' },
-  { key: 'armhole', label: 'Armhole (in)' },
-  { key: 'fullLength', label: 'Full Length (in)' },
+  { key: 'chest', label: 'Chest (in)', placeholder: 'e.g. 36' },
+  { key: 'waist', label: 'Waist (in)', placeholder: 'e.g. 36' },
+  { key: 'hip', label: 'Hip (in)', placeholder: 'e.g. 36' },
+  { key: 'armhole', label: 'Armhole (in)', placeholder: 'e.g. 36' },
+  { key: 'lengthTop', label: 'Length of Top (in)', placeholder: 'e.g. 36' },
+  { key: 'lengthBottom', label: 'Length of Bottom (in)', placeholder: 'e.g. 36' },
+  { key: 'height', label: 'Your Height (ft & in)', placeholder: "e.g. 5'4\"" },
 ];
 
 const initialState = {
@@ -17,7 +24,9 @@ const initialState = {
   waist: '',
   hip: '',
   armhole: '',
-  fullLength: '',
+  lengthTop: '',
+  lengthBottom: '',
+  height: '',
   notes: '',
 };
 
@@ -29,19 +38,25 @@ export default function MeasurementForm() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setStatus('sending');
-
-    const message = [
+  function buildMessage() {
+    return [
       `Chest: ${form.chest || '—'}"`,
       `Waist: ${form.waist || '—'}"`,
       `Hip: ${form.hip || '—'}"`,
       `Armhole: ${form.armhole || '—'}"`,
-      `Full Length: ${form.fullLength || '—'}"`,
+      `Length of Top: ${form.lengthTop || '—'}"`,
+      `Length of Bottom: ${form.lengthBottom || '—'}"`,
+      `Height: ${form.height || '—'}`,
       '',
       form.notes ? `Notes: ${form.notes}` : 'Notes: —',
     ].join('\n');
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus('sending');
+
+    const message = buildMessage();
 
     try {
       const res = await fetch('/api/contact', {
@@ -55,6 +70,13 @@ export default function MeasurementForm() {
     } catch {
       setStatus('error');
     }
+  }
+
+  function handleWhatsApp() {
+    const intro = `Hi! I'd like to place a custom order. Here are my measurements:\n`;
+    const who = `Name: ${form.name || '—'}\nEmail: ${form.email || '—'}\n\n`;
+    const text = intro + who + buildMessage();
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank', 'noreferrer');
   }
 
   if (status === 'success') {
@@ -94,8 +116,8 @@ export default function MeasurementForm() {
             <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">{f.label}</label>
             <input
               type="text"
-              inputMode="decimal"
-              placeholder="e.g. 36"
+              inputMode={f.key === 'height' ? 'text' : 'decimal'}
+              placeholder={f.placeholder}
               value={form[f.key]}
               onChange={(e) => update(f.key, e.target.value)}
               className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
@@ -118,13 +140,25 @@ export default function MeasurementForm() {
 
       {status === 'error' && <p className="text-sm text-red-500 mt-3">Something went wrong — please try again.</p>}
 
-      <button
-        type="submit"
-        disabled={status === 'sending'}
-        className="mt-6 w-full sm:w-auto bg-gold text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:opacity-90 disabled:opacity-60"
-      >
-        {status === 'sending' ? 'Sending…' : 'Send My Measurements'}
-      </button>
+      <p className="text-xs text-forest/60 mt-6">
+        Send your measurements however's easiest — by email or straight to us on WhatsApp.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 mt-2">
+        <button
+          type="submit"
+          disabled={status === 'sending'}
+          className="flex-1 sm:flex-none bg-gold text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:opacity-90 disabled:opacity-60"
+        >
+          {status === 'sending' ? 'Sending…' : 'Email My Measurements'}
+        </button>
+        <button
+          type="button"
+          onClick={handleWhatsApp}
+          className="flex-1 sm:flex-none border border-forest text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors"
+        >
+          Send via WhatsApp
+        </button>
+      </div>
     </form>
   );
 }
