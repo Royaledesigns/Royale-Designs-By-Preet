@@ -6,7 +6,7 @@
 // `availableSizes` is the subset currently made/in stock for that piece —
 // the rest show up greyed out on the product page, with only "Custom" left
 // selectable so shoppers know to order those sizes as a custom stitch.
-export const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+export const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 // Heels & Punjabi Jutti use European shoe sizing instead of clothing sizes.
 export const SHOE_SIZES = ['34', '35', '36', '37', '38', '39', '40', '41', '42'];
