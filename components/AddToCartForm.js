@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
-import { getSizesForCategory } from '@/data/products';
+import { getSizesForCategory, isJewelleryCategory } from '@/data/products';
 import siteConfig from './SiteConfig';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
@@ -13,7 +13,7 @@ export default function AddToCartForm({ product }) {
   // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti, which
   // uses EU shoe sizes. Jewellery isn't sized at all.
   const isFootwear = product.category === 'heels-punjabi-jutti';
-  const isJewellery = product.category === 'antique-modern-jewellery';
+  const isJewellery = isJewelleryCategory(product.category);
   const sizeOptions = getSizesForCategory(product.category);
 
   // Legacy products (seeded before this feature existed) have every size
