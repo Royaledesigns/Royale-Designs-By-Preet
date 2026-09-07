@@ -11,6 +11,9 @@ export const revalidate = 30;
 
 export default async function HomePage() {
   const products = await getAllProducts();
+  // A curated collage of real Royale Designs pieces — brighter and consistent
+  // no matter which product happens to be newest, so the homepage always
+  // opens with a strong, on-brand first impression.
   const heroImage = '/images/hero-collage_2.jpg';
   // Newest first, so newly published products actually show up here.
   const featured = [...products].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
@@ -23,7 +26,7 @@ export default async function HomePage() {
           {heroImage && (
             <Image
               src={heroImage}
-              alt="Royale Designs by Preet featured piece"
+              alt="A showcase of Royale Designs by Preet bridal and ethnic wear pieces"
               fill
               priority
               className="object-cover object-top"
@@ -38,7 +41,7 @@ export default async function HomePage() {
               Where Heritage Meets Elegance
             </h1>
             <p className="text-cream/80 mt-4 max-w-xl text-sm sm:text-base">
-              Lehengas, gharara sets, sharara sets, anarkalis & suits — thoughtfully
+              Bridal wear, lehengas, gharara, sharara, anarkalis & suits — thoughtfully
               customised for you, with our home based in Melbourne.
             </p>
             <Link
