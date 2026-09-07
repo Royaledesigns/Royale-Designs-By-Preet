@@ -11,7 +11,7 @@ export const revalidate = 30;
 
 export default async function HomePage() {
   const products = await getAllProducts();
-  const heroImage = products[0]?.image;
+  const heroImage = '/images/hero-collage_2.jpg';
   // Newest first, so newly published products actually show up here.
   const featured = [...products].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
