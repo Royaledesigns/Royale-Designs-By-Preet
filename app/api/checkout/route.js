@@ -39,7 +39,7 @@ export async function POST(request) {
         currency: 'aud',
         unit_amount: Math.round(product.price * 100),
         product_data: {
-          name: `${product.title} — Size: ${item.size}`,
+          name: item.size === 'One Size' ? product.title : `${product.title} — Size: ${item.size}`,
           images: [product.image],
           metadata: { handle: product.handle, size: item.size },
         },
