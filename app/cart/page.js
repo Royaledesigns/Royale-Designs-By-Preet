@@ -61,7 +61,7 @@ export default function CartPage() {
                 <Link href={`/product/${item.handle}`} className="font-serif text-lg text-forest-dark hover:text-gold">
                   {item.title}
                 </Link>
-                <p className="text-sm text-forest/80">Size: {item.size}</p>
+                {item.size !== 'One Size' && <p className="text-sm text-forest/80">Size: {item.size}</p>}
                 <p className="text-sm text-forest/80 mt-1">
                   <Price amountAud={item.price} />
                 </p>
