@@ -23,6 +23,7 @@ function emptyForm(product) {
     source: product.source,
     instagramMediaId: product.instagramMediaId,
     instagramPermalink: product.instagramPermalink,
+    instagramLinkVerified: product.instagramLinkVerified || false,
   };
 }
 
@@ -40,6 +41,12 @@ function ProductCard({ product, onSaved, onDeleted }) {
       // Clothing sizes and EU shoe sizes don't overlap — clear whatever was
       // ticked so a stale size from the old category can't stick around.
       setForm((f) => ({ ...f, category: value, availableSizes: [] }));
+      return;
+    }
+    if (field === 'instagramPermalink') {
+      // A changed link hasn't been checked yet, so it goes back to
+      // unverified until someone confirms the new one is correct.
+      setForm((f) => ({ ...f, instagramPermalink: value, instagramLinkVerified: false }));
       return;
     }
     setForm((f) => ({ ...f, [field]: value }));
@@ -223,7 +230,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
 
         <div>
           <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1">
-            Instagram link (shown on the product page)
+            Instagram link
           </label>
           <input
             value={form.instagramPermalink || ''}
@@ -233,9 +240,28 @@ function ProductCard({ product, onSaved, onDeleted }) {
           />
           <p className="text-[11px] text-forest/60 mt-1.5">
             Auto-filled when a post syncs from Instagram — occasionally wrong for collab/repost
-            posts, so double-check it opens the right video before relying on it. Leave blank to
-            link to your Instagram profile instead.
+            posts. Click it below to check it opens the right video, then tick the box — until
+            you do, the product page safely links to your Instagram profile instead of this post.
           </p>
+          {form.instagramPermalink && (
+            <a
+              href={form.instagramPermalink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block text-xs underline text-forest/80 hover:text-gold mt-1.5"
+            >
+              Open this link to check it →
+            </a>
+          )}
+          <label className="flex items-center gap-2 text-sm text-forest-dark mt-2">
+            <input
+              type="checkbox"
+              checked={form.instagramLinkVerified}
+              disabled={!form.instagramPermalink}
+              onChange={(e) => set('instagramLinkVerified', e.target.checked)}
+            />
+            I checked this link and it opens the correct video
+          </label>
         </div>
 
         {!isUnsized && (
@@ -285,13 +311,22 @@ function ProductCard({ product, onSaved, onDeleted }) {
 
         <div className="flex flex-wrap gap-2 pt-1">
           {isDraft ? (
-            <button
-              onClick={() => save('published')}
-              disabled={saving}
-              className="bg-gold text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:opacity-90 disabled:opacity-60"
-            >
-              {saving ? 'Publishing…' : 'Publish'}
-            </button>
+            <>
+              <button
+                onClick={() => save('published')}
+                disabled={saving}
+                className="bg-gold text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:opacity-90 disabled:opacity-60"
+              >
+                {saving ? 'Publishing…' : 'Publish'}
+              </button>
+              <button
+                onClick={() => save('draft')}
+                disabled={saving}
+                className="border border-forest/30 text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:bg-cream-dark disabled:opacity-60"
+              >
+                {saving ? 'Saving…' : 'Save Draft'}
+              </button>
+            </>
           ) : (
             <button
               onClick={() => save('published')}
