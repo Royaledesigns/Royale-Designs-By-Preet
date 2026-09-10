@@ -11,15 +11,20 @@ export default function CartPage() {
   const { items, updateQty, removeItem, subtotal, hydrated } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [shippingRegion, setShippingRegion] = useState('');
 
   async function handleCheckout() {
+    if (!shippingRegion) {
+      setError('Please select a shipping destination.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, shippingRegion }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -100,8 +105,25 @@ export default function CartPage() {
         <div className="text-right">
           <p className="text-sm text-forest/80">Subtotal</p>
           <p className="font-serif text-2xl text-forest-dark">{formatMoney(subtotal, 'AUD')}</p>
-          <p className="text-xs text-forest/80">Shipping & any taxes calculated at checkout.</p>
+          <p className="text-xs text-forest/80">Taxes, if any, calculated at checkout.</p>
         </div>
+
+        <div className="w-full sm:w-72 text-right">
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
+            Shipping destination
+          </label>
+          <select
+            value={shippingRegion}
+            onChange={(e) => setShippingRegion(e.target.value)}
+            className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-gold"
+          >
+            <option value="">Select where you're shipping to…</option>
+            <option value="AU">Australia — $20 shipping</option>
+            <option value="NZ">New Zealand — $30 shipping</option>
+            <option value="INTL">USA, Canada, UK or Europe — $60 shipping</option>
+          </select>
+        </div>
+
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           onClick={handleCheckout}
