@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getProduct } from '@/data/products';
+import { getProduct } from '@/lib/catalog';
 
 // Countries we ship to, expressed as ISO codes for Stripe's shipping address
 // collector. Add/remove as your shipping policy changes.
@@ -28,26 +28,32 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
   }
 
-  // Re-price every line item from our own product data rather than trusting
-  // the client, so the amount actually charged always matches the catalog.
-  const line_items = items.map((item) => {
-    const product = getProduct(item.handle);
-    if (!product) throw new Error(`Unknown product: ${item.handle}`);
-    return {
-      quantity: item.qty,
-      price_data: {
-        currency: 'aud',
-        unit_amount: Math.round(product.price * 100),
-        product_data: {
-          name: item.size === 'One Size' ? product.title : `${product.title} — Size: ${item.size}`,
-          images: [product.image],
-          metadata: { handle: product.handle, size: item.size },
-        },
-      },
-    };
-  });
-
   try {
+    // Re-price every line item from our own live catalog (Redis-backed,
+    // including products added through /admin/products) rather than
+    // trusting the client, so the amount actually charged always matches
+    // what's on the site right now.
+    const line_items = await Promise.all(
+      items.map(async (item) => {
+        const product = await getProduct(item.handle);
+        if (!product) {
+          throw new Error(`"${item.title || item.handle}" is no longer available — please remove it from your cart.`);
+        }
+        return {
+          quantity: item.qty,
+          price_data: {
+            currency: 'aud',
+            unit_amount: Math.round(product.price * 100),
+            product_data: {
+              name: item.size === 'One Size' ? product.title : `${product.title} — Size: ${item.size}`,
+              images: [product.image],
+              metadata: { handle: product.handle, size: item.size },
+            },
+          },
+        };
+      })
+    );
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
@@ -83,7 +89,10 @@ export async function POST(request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('Stripe checkout error:', err);
-    return NextResponse.json({ error: 'Could not start checkout. Please try again.' }, { status: 500 });
+    console.error('Checkout error:', err);
+    return NextResponse.json(
+      { error: err.message || 'Could not start checkout. Please try again.' },
+      { status: 500 }
+    );
   }
 }
