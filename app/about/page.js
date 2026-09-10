@@ -13,26 +13,28 @@ export default function AboutPage() {
       </div>
       <div className="prose prose-lg max-w-none text-forest/80 leading-relaxed space-y-5">
         <p>
-          {siteConfig.name} is a premium South Asian bridal and ethnic wear brand based in{' '}
-          {siteConfig.location}. Every lehenga, gharara set, sharara set, anarkali and suit is
-          thoughtfully customised for you, with a focus on rich embellishment, considered
-          detailing, and pieces that feel special enough for the moments that matter — sangeet,
-          reception, Karwachauth, Jaggo, and every celebration in between.
+          {siteConfig.name} began with a simple belief: the clothes you wear for life&rsquo;s
+          most cherished moments should feel like they were made just for you. From our home in{' '}
+          {siteConfig.location}, every lehenga, gharara, sharara, anarkali and suit is
+          thoughtfully customised by hand — rich embellishment, considered detailing, and a fit
+          shaped around you, never off a rack. Whether it&rsquo;s a sangeet, a reception,
+          Karwachauth, Jaggo, or any celebration close to your heart, we want you to feel like the
+          most elegant version of yourself in it.
         </p>
         <p>
-          What started as a close, hands-on operation has grown into a brand our customers
-          discover across Instagram, TikTok, Facebook and WhatsApp, and now shop directly through
-          this website — with orders shipped from Melbourne to Australia, the USA, Canada, the
-          UK, New Zealand and Europe.
+          What began as a close, hands-on labour of love has grown into a brand our community
+          discovers across Instagram, TikTok, Facebook and WhatsApp — and now, right here on our
+          own home. From Melbourne, we now send that same warmth and craftsmanship to doorsteps
+          across Australia, the USA, Canada, the UK, New Zealand and Europe.
         </p>
         <p>
-          Alongside our ready-to-order collection, we also offer a dedicated Custom Made For You
-          service for customers who want a piece made to their exact measurements or with a
-          personal touch — see our{' '}
+          Beyond our ready-to-order collection, we offer a dedicated Custom Made For You service
+          for anyone dreaming of a piece made to their exact measurements, or with a personal
+          touch that makes it truly theirs — visit our{' '}
           <a href="/custom-tailoring" className="underline hover:text-gold">
             Custom Made For You
           </a>{' '}
-          page to get started.
+          page to begin that journey with us.
         </p>
       </div>
     </div>
