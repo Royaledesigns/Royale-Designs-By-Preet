@@ -18,12 +18,11 @@ export default function AboutPage() {
       <div className="prose prose-lg max-w-none text-forest/80 leading-relaxed space-y-5">
         <p>
           {siteConfig.name} began with a simple belief: the clothes you wear for life&rsquo;s
-          most cherished moments should feel like they were made just for you. From our home in{' '}
-          {siteConfig.location}, every lehenga, gharara, sharara, anarkali and suit is
-          thoughtfully customised by hand — rich embellishment, considered detailing, and a fit
-          shaped around you, never off a rack. Whether it&rsquo;s a sangeet, a reception,
-          Karwachauth, Jaggo, or any celebration close to your heart, we want you to feel like the
-          most elegant version of yourself in it.
+          most cherished moments should feel like they were made just for you. Every lehenga,
+          gharara, sharara, anarkali and suit is thoughtfully customised by hand — rich
+          embellishment, considered detailing, and a fit shaped around you, never off a rack.
+          Whether it&rsquo;s a sangeet, a reception, Karwachauth, Jaggo, or any celebration close
+          to your heart, we want you to feel like the most elegant version of yourself in it.
         </p>
         <p>
           What began as a close, hands-on labour of love has grown into a brand our community
