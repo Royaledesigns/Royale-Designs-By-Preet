@@ -12,11 +12,7 @@ export const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 export const SHOE_SIZES = ['34', '35', '36', '37', '38', '39', '40', '41', '42'];
 
 // Jewellery categories aren't sized at all — no size picker shows for these.
-export const JEWELLERY_CATEGORIES = [
-  'jewellery-sets',
-  'kashmiri-earrings',
-  'rings-bangles-anklets',
-];
+export const JEWELLERY_CATEGORIES = ['jewellery'];
 
 export function isJewelleryCategory(category) {
   return JEWELLERY_CATEGORIES.includes(category);
@@ -29,7 +25,7 @@ export function getSizesForCategory(category) {
 }
 
 export const categories = [
-  { slug: 'bridal-wear-outfits', label: 'Bridal Wear Outfits' },
+  { slug: 'bridal-wear-outfits', label: 'Bridal Wear' },
   { slug: 'lehengas', label: 'Lehengas' },
   { slug: 'gharara-sets', label: 'Gharara' },
   { slug: 'sharara-sets', label: 'Sharara' },
@@ -38,9 +34,7 @@ export const categories = [
   { slug: 'casual-wear-suits', label: 'Casual Wear Suits' },
   { slug: 'pakistani-mirror-dupattas', label: 'Pakistani Mirror Dupattas' },
   { slug: 'heels-punjabi-jutti', label: 'Heels & Punjabi Jutti' },
-  { slug: 'jewellery-sets', label: 'Jewellery Sets' },
-  { slug: 'kashmiri-earrings', label: 'Kashmiri Earrings' },
-  { slug: 'rings-bangles-anklets', label: 'Rings, Bangles & Anklets' },
+  { slug: 'jewellery', label: 'Jewellery' },
 ];
 
 export const products = [
