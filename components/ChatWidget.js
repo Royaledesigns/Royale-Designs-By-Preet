@@ -9,6 +9,87 @@ import siteConfig from '@/components/SiteConfig';
 // grounded in real facts about the business so it doesn't make things up.
 const GREETING = `Hi! I'm here to help with questions about ${siteConfig.shortName} — shipping, sizing, custom orders, returns and more. What would you like to know?`;
 
+// Shipping questions are BY FAR the most common thing customers ask, and
+// the answer is always one of a handful of fixed facts — so instead of
+// waiting on the AI for these, we answer instantly, straight from
+// siteConfig, with zero network round-trip. Anything else still goes to
+// the AI assistant.
+const REGION_INFO = {
+  AU: { label: 'Australia', amount: 20, delivery: '5–7 business days' },
+  NZ: { label: 'New Zealand', amount: 30, delivery: '5–8 business days' },
+  INTL: { label: 'the USA, Canada, UK or Europe', amount: 60, delivery: '6–9 business days' },
+};
+const SUPPORTED_COUNTRY_ALIASES = [
+  { region: 'AU', names: ['australia', 'aus'] },
+  { region: 'NZ', names: ['new zealand', 'nz'] },
+  { region: 'INTL', names: ['usa', 'us', 'united states', 'america'] },
+  { region: 'INTL', names: ['canada'] },
+  { region: 'INTL', names: ['uk', 'united kingdom', 'britain', 'england', 'scotland', 'wales'] },
+  {
+    region: 'INTL',
+    names: [
+      'europe', 'germany', 'france', 'italy', 'spain', 'netherlands', 'ireland',
+      'portugal', 'austria', 'sweden', 'denmark', 'finland', 'belgium',
+    ],
+  },
+];
+// Countries customers of a South Asian bridal brand commonly ask about
+// that we don't currently deliver to — flagged so the fallback is a
+// specific, honest "not yet, but message us" instead of a vague one.
+const KNOWN_UNSUPPORTED_COUNTRIES = [
+  'india', 'pakistan', 'bangladesh', 'sri lanka', 'nepal', 'singapore',
+  'malaysia', 'uae', 'united arab emirates', 'dubai', 'fiji', 'south africa',
+  'japan', 'china', 'philippines', 'indonesia', 'kenya', 'qatar', 'saudi arabia',
+];
+
+function findShippingRegion(lowerText) {
+  for (const { region, names } of SUPPORTED_COUNTRY_ALIASES) {
+    if (names.some((n) => lowerText.includes(n))) return region;
+  }
+  return null;
+}
+
+// Returns an instant reply string for shipping/country questions, or null
+// if this isn't one (so the caller falls back to the AI).
+function getInstantShippingReply(text) {
+  const lower = text.toLowerCase();
+  if (!/\b(ship|shipping|deliver|delivery|send)\b/i.test(lower)) return null;
+
+  const region = findShippingRegion(lower);
+  if (region) {
+    const info = REGION_INFO[region];
+    return `Yes, we ship to ${info.label} — flat rate $${info.amount} AUD, estimated ${info.delivery} from dispatch. Every piece is made to order, so please allow processing time before dispatch too.`;
+  }
+
+  const unsupported = KNOWN_UNSUPPORTED_COUNTRIES.find((c) => lower.includes(c));
+  if (unsupported) {
+    return `We don't currently ship there directly — but message us on WhatsApp and we'll see what we can do.`;
+  }
+
+  return `We currently deliver to ${siteConfig.shipsTo.join(', ')}. Where are you hoping to ship to?`;
+}
+
+// Renders "WhatsApp" mentions in a reply (instant or AI-generated) as an
+// actual clickable link, rather than plain text a shopper has to go find
+// the number for themselves.
+function renderWithLinks(text) {
+  return text.split(/(WhatsApp)/gi).map((part, i) =>
+    /^whatsapp$/i.test(part) ? (
+      <a
+        key={i}
+        href={siteConfig.social.whatsapp}
+        target="_blank"
+        rel="noreferrer"
+        className="underline font-medium hover:text-gold"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([{ role: 'assistant', text: GREETING }]);
@@ -35,6 +116,14 @@ export default function ChatWidget() {
     const nextMessages = [...messages, { role: 'user', text }];
     setMessages(nextMessages);
     setInput('');
+
+    // Shipping questions are answered instantly, with no API call at all.
+    const instantReply = getInstantShippingReply(text);
+    if (instantReply) {
+      setMessages((prev) => [...prev, { role: 'assistant', text: instantReply }]);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -119,7 +208,7 @@ export default function ChatWidget() {
                         : 'bg-white text-forest-dark border border-forest/10'
                   }`}
                 >
-                  {m.text}
+                  {renderWithLinks(m.text)}
                 </div>
               </div>
             ))}
