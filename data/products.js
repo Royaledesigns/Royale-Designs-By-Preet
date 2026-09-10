@@ -13,12 +13,9 @@ export const SHOE_SIZES = ['34', '35', '36', '37', '38', '39', '40', '41', '42']
 
 // Jewellery categories aren't sized at all — no size picker shows for these.
 export const JEWELLERY_CATEGORIES = [
-  'antique-modern-jewellery',
+  'jewellery-sets',
   'kashmiri-earrings',
-  'traditional-punjabi-jewellery-sets',
-  'rings',
-  'anklets',
-  'bangles',
+  'rings-bangles-anklets',
 ];
 
 export function isJewelleryCategory(category) {
@@ -41,12 +38,9 @@ export const categories = [
   { slug: 'casual-wear-suits', label: 'Casual Wear Suits' },
   { slug: 'pakistani-mirror-dupattas', label: 'Pakistani Mirror Dupattas' },
   { slug: 'heels-punjabi-jutti', label: 'Heels & Punjabi Jutti' },
-  { slug: 'antique-modern-jewellery', label: 'Antique & Modern Jewellery' },
+  { slug: 'jewellery-sets', label: 'Jewellery Sets' },
   { slug: 'kashmiri-earrings', label: 'Kashmiri Earrings' },
-  { slug: 'traditional-punjabi-jewellery-sets', label: 'Traditional Punjabi Jewellery Sets' },
-  { slug: 'rings', label: 'Rings' },
-  { slug: 'anklets', label: 'Anklets' },
-  { slug: 'bangles', label: 'Bangles' },
+  { slug: 'rings-bangles-anklets', label: 'Rings, Bangles & Anklets' },
 ];
 
 export const products = [
