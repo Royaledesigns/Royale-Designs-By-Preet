@@ -3,17 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
-import { getSizesForCategory, isJewelleryCategory } from '@/data/products';
+import { getSizesForCategory, isUnsizedCategory } from '@/data/products';
 import siteConfig from './SiteConfig';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 const ONE_SIZE = 'One Size';
 
 export default function AddToCartForm({ product }) {
-  // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti, which
-  // uses EU shoe sizes. Jewellery isn't sized at all.
+  // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti (EU shoe
+  // sizes) and Kids Wear (age-based sizes). Jewellery and Dupattas aren't
+  // sized at all.
   const isFootwear = product.category === 'heels-punjabi-jutti';
-  const isJewellery = isJewelleryCategory(product.category);
+  const isUnsized = isUnsizedCategory(product.category);
   const sizeOptions = getSizesForCategory(product.category);
 
   // Legacy products (seeded before this feature existed) have every size
@@ -25,10 +26,10 @@ export default function AddToCartForm({ product }) {
       : product.availableSizes === undefined
         ? sizeOptions
         : [];
-  // Shoes are made in fixed EU sizes only, and jewellery isn't sized at
-  // all — neither has a "Custom" fallback option.
-  const customStitchAvailable = !isFootwear && !isJewellery && product.customStitch !== false;
-  const defaultSize = isJewellery
+  // Shoes are made in fixed EU sizes only, and unsized categories don't
+  // have a "Custom" fallback option either.
+  const customStitchAvailable = !isFootwear && !isUnsized && product.customStitch !== false;
+  const defaultSize = isUnsized
     ? ONE_SIZE
     : availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : sizeOptions[0]);
 
@@ -57,7 +58,7 @@ export default function AddToCartForm({ product }) {
         </p>
         <p className="text-sm text-forest/80">
           This piece has found its home and is no longer available.
-          {isJewellery
+          {isUnsized
             ? ' Love the look? Reach out and we may have something similar.'
             : ' Love the look? We may be able to recreate something similar as a custom stitch.'}
         </p>
@@ -75,7 +76,7 @@ export default function AddToCartForm({ product }) {
 
   return (
     <div className="mt-6 space-y-5">
-      {!isJewellery && (
+      {!isUnsized && (
         <div>
           <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Size</label>
           <select
