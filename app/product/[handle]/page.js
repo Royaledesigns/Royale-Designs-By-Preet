@@ -5,6 +5,7 @@ import { getCategory, getProduct, getProductsByCategory } from '@/lib/catalog';
 import Price from '@/components/Price';
 import ProductCard from '@/components/ProductCard';
 import AddToCartForm from '@/components/AddToCartForm';
+import siteConfig from '@/components/SiteConfig';
 
 // Products can be added at any time from the admin dashboard (including
 // ones pulled in from Instagram), so this page is rendered on demand rather
@@ -65,6 +66,15 @@ export default async function ProductPage({ params }) {
               </span>
             ))}
           </div>
+
+          <a
+            href={product.instagramPermalink || siteConfig.social.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 mt-4 text-sm text-forest hover:text-gold underline underline-offset-2"
+          >
+            See the full look on Instagram →
+          </a>
 
           <AddToCartForm product={product} />
 
