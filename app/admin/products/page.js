@@ -221,6 +221,23 @@ function ProductCard({ product, onSaved, onDeleted }) {
           />
         </div>
 
+        <div>
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1">
+            Instagram link (shown on the product page)
+          </label>
+          <input
+            value={form.instagramPermalink || ''}
+            onChange={(e) => set('instagramPermalink', e.target.value)}
+            placeholder="https://www.instagram.com/reel/..."
+            className="w-full border border-forest/20 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold"
+          />
+          <p className="text-[11px] text-forest/60 mt-1.5">
+            Auto-filled when a post syncs from Instagram — occasionally wrong for collab/repost
+            posts, so double-check it opens the right video before relying on it. Leave blank to
+            link to your Instagram profile instead.
+          </p>
+        </div>
+
         {!isUnsized && (
           <div>
             <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
