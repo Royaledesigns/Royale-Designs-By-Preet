@@ -43,11 +43,40 @@ export default function ChatWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, history: nextMessages.slice(0, -1) }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.reply) {
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Could not get a reply right now.');
       }
-      setMessages((prev) => [...prev, { role: 'assistant', text: data.reply }]);
+
+      // The reply streams in as plain text chunks — append each one to a
+      // live assistant bubble so it visibly types itself out instead of
+      // the shopper waiting on "Typing…" for the whole answer at once.
+      let streamed = '';
+      let started = false;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        streamed += chunk;
+        if (!started) {
+          started = true;
+          setLoading(false);
+          setMessages((prev) => [...prev, { role: 'assistant', text: streamed }]);
+        } else {
+          setMessages((prev) => {
+            const next = [...prev];
+            next[next.length - 1] = { ...next[next.length - 1], text: streamed };
+            return next;
+          });
+        }
+      }
+      if (!started) {
+        throw new Error('Could not get a reply right now.');
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
