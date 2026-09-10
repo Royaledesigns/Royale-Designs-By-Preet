@@ -37,7 +37,7 @@ export const categories = [
   { slug: 'anarkalis', label: 'Anarkalis' },
   { slug: 'suits', label: 'Partywear Suits' },
   { slug: 'casual-wear-suits', label: 'Casual Wear Suits' },
-  { slug: 'pakistani-mirror-dupattas', label: 'Pakistani Mirror Dupattas' },
+  { slug: 'pakistani-mirror-dupattas', label: 'Dupattas' },
   { slug: 'heels-punjabi-jutti', label: 'Heels & Punjabi Jutti' },
   { slug: 'kids-wear', label: 'Kids Wear' },
   { slug: 'jewellery', label: 'Jewellery' },
