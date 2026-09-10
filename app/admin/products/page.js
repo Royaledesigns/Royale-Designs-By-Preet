@@ -30,6 +30,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const [form, setForm] = useState(emptyForm(product));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [generatingTitle, setGeneratingTitle] = useState(false);
   const isDraft = product.status === 'draft';
   const isJewellery = isJewelleryCategory(form.category);
   const sizeOptions = getSizesForCategory(form.category);
@@ -82,6 +83,26 @@ function ProductCard({ product, onSaved, onDeleted }) {
       setError(err.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function generateTitle() {
+    if (!form.image) return;
+    setGeneratingTitle(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/generate-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: form.image, category: form.category }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not generate a title.');
+      set('title', data.title);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGeneratingTitle(false);
     }
   }
 
@@ -142,7 +163,17 @@ function ProductCard({ product, onSaved, onDeleted }) {
         </div>
 
         <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1">Title</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs uppercase tracking-wide text-forest/80">Title</label>
+            <button
+              type="button"
+              onClick={generateTitle}
+              disabled={generatingTitle || !form.image}
+              className="text-[11px] uppercase tracking-wide text-gold-dark hover:text-gold disabled:opacity-50 disabled:hover:text-gold-dark"
+            >
+              {generatingTitle ? 'Generating…' : '✦ Generate title with AI'}
+            </button>
+          </div>
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
