@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 
 // Generates an on-brand product title from a photo using Google's Gemini
-// vision model (free tier — no billing needed, see README.md "AI-generated
-// product titles"). Called from the "Generate Title with AI" button in the
-// admin dashboard (app/admin/products/page.js). Protected by the same
-// /api/admin session check as every other admin route (see proxy.js) — no
-// extra auth needed here.
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+// vision model, via the Interactions API (free tier — no billing needed,
+// see README.md "AI-generated product titles"). Called from the "Generate
+// Title with AI" button in the admin dashboard
+// (app/admin/products/page.js). Protected by the same /api/admin session
+// check as every other admin route (see proxy.js) — no extra auth needed
+// here.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
 // A few real titles already on the site, so the model matches the house
 // style instead of inventing its own.
@@ -45,8 +46,8 @@ export async function POST(request) {
     );
   }
 
-  // Gemini only accepts image bytes (or a Google Files URI), not an arbitrary
-  // external URL — so fetch the product photo server-side first.
+  // Gemini only accepts image bytes (or a Google Files reference), not an
+  // arbitrary external URL — so fetch the product photo server-side first.
   let imageBase64;
   let mimeType;
   try {
@@ -72,16 +73,18 @@ Rules:
 - Reply with ONLY the title — nothing else, no explanation.`;
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: imageBase64 } }],
-          },
+        model: MODEL,
+        input: [
+          { type: 'text', text: prompt },
+          { type: 'image', data: imageBase64, mime_type: mimeType },
         ],
-        generationConfig: { maxOutputTokens: 40, temperature: 0.6 },
       }),
     });
 
@@ -89,7 +92,7 @@ Rules:
       const errBody = await response.text();
       console.error('Gemini title generation failed:', response.status, errBody);
       const friendly =
-        response.status === 400 || response.status === 403
+        response.status === 400 || response.status === 401 || response.status === 403
           ? 'GEMINI_API_KEY was rejected — double check the key in Vercel.'
           : response.status === 429
             ? 'Hit the free-tier rate limit — wait a minute and try again.'
@@ -98,12 +101,17 @@ Rules:
     }
 
     const data = await response.json();
-    const rawTitle =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((p) => p.text || '')
-        .join('')
-        .trim() || '';
-    const title = rawTitle.replace(/^["'“”]+|["'“”]+$/g, '').replace(/\.$/, '').trim();
+    const textParts = (data.steps || [])
+      .filter((step) => step.type === 'model_output')
+      .flatMap((step) => step.content || [])
+      .filter((c) => c.type === 'text')
+      .map((c) => c.text || '');
+    const rawTitle = textParts.join('').trim();
+    const title = rawTitle
+      .split('\n')[0]
+      .replace(/^["'“”]+|["'“”]+$/g, '')
+      .replace(/\.$/, '')
+      .trim();
 
     if (!title) {
       return NextResponse.json({ error: 'The AI did not return a title — try again.' }, { status: 502 });
