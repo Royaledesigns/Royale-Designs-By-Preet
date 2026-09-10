@@ -1,5 +1,3 @@
-
-import { NextResponse } from 'next/server';
 import siteConfig from '@/components/SiteConfig';
 
 // Powers the "Chat with us" widget (components/ChatWidget.js) that appears
@@ -8,6 +6,11 @@ import siteConfig from '@/components/SiteConfig';
 // via the Interactions API. The model only answers from BUSINESS_FACTS
 // below — update this block whenever shipping, pricing or policy details
 // change, and the chatbot's answers stay accurate automatically.
+//
+// Streamed (stream: true) rather than a single request/response — Gemini
+// can take several seconds to finish a full reply, so streaming the reply
+// word-by-word to the browser makes it feel instant instead of leaving
+// the shopper staring at "Typing…" the whole time.
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
@@ -41,44 +44,48 @@ const SYSTEM_PROMPT = `You are the friendly customer-support assistant in the li
 
 Only answer using the FACTS below — never invent shipping costs, delivery times, prices, stock levels or policies that aren't listed there. If someone asks about something outside these facts (a specific product's price or availability, an existing order's status, exact sizing for one item), say you don't have that detail handy and point them to browsing the shop, the Custom Made For You page, or messaging on WhatsApp/email.
 
-Keep replies short and warm — 1 to 3 sentences, plain conversational text, no markdown formatting and no bullet lists unless the question truly needs a short list. Never say you are an AI, a model, or mention Gemini or any technology — if asked who you are, just say you're here to help with questions about Royale Designs by Preet.
+Keep replies short and warm — 1 to 2 sentences, plain conversational text, no markdown formatting and no bullet lists. Never say you are an AI, a model, or mention Gemini or any technology — if asked who you are, just say you're here to help with questions about Royale Designs by Preet.
 
 FACTS:
 ${BUSINESS_FACTS}`;
+
+function jsonError(message, status) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
 
 export async function POST(request) {
   let body;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+    return jsonError('Invalid request.', 400);
   }
 
   const { message, history } = body;
   if (!message || typeof message !== 'string' || !message.trim()) {
-    return NextResponse.json({ error: 'A message is required.' }, { status: 400 });
+    return jsonError('A message is required.', 400);
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Chat isn't set up yet — please reach out on WhatsApp or email instead." },
-      { status: 500 }
-    );
+    return jsonError("Chat isn't set up yet — please reach out on WhatsApp or email instead.", 500);
   }
 
-  // Keep only the last few turns so the prompt stays small and cheap —
-  // plenty for a support chat that rarely needs deep history.
-  const recentHistory = Array.isArray(history) ? history.slice(-10) : [];
+  // Keep only the last few turns so the prompt stays small (faster to
+  // process) — plenty for a support chat that rarely needs deep history.
+  const recentHistory = Array.isArray(history) ? history.slice(-6) : [];
   const historyText = recentHistory
     .map((m) => `${m.role === 'user' ? 'Customer' : 'You'}: ${String(m.text || '').trim()}`)
     .filter(Boolean)
     .join('\n');
-
   const conversation = `${historyText ? historyText + '\n' : ''}Customer: ${message.trim()}\nYou:`;
 
+  let upstream;
   try {
-    const response = await fetch(GEMINI_API_URL, {
+    upstream = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -87,34 +94,79 @@ export async function POST(request) {
       body: JSON.stringify({
         model: MODEL,
         input: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\nConversation so far:\n${conversation}` }],
+        stream: true,
       }),
     });
-
-    if (!response.ok) {
-      const errBody = await response.text();
-      console.error('Gemini chat failed:', response.status, errBody);
-      const friendly =
-        response.status === 429
-          ? "We're getting a lot of questions right now — try again in a minute, or message us on WhatsApp."
-          : 'Could not reach the chat assistant right now — please try again, or message us on WhatsApp.';
-      return NextResponse.json({ error: friendly }, { status: 502 });
-    }
-
-    const data = await response.json();
-    const textParts = (data.steps || [])
-      .filter((step) => step.type === 'model_output')
-      .flatMap((step) => step.content || [])
-      .filter((c) => c.type === 'text')
-      .map((c) => c.text || '');
-    const reply = textParts.join('').trim();
-
-    if (!reply) {
-      return NextResponse.json({ error: 'Could not generate a reply — please try again.' }, { status: 502 });
-    }
-
-    return NextResponse.json({ reply });
   } catch (err) {
     console.error('Chat error:', err);
-    return NextResponse.json({ error: 'Could not reach the chat assistant right now.' }, { status: 500 });
+    return jsonError('Could not reach the chat assistant right now.', 500);
   }
+
+  if (!upstream.ok || !upstream.body) {
+    const errBody = await upstream.text().catch(() => '');
+    console.error('Gemini chat failed:', upstream.status, errBody);
+    const friendly =
+      upstream.status === 429
+        ? "We're getting a lot of questions right now — try again in a minute, or message us on WhatsApp."
+        : 'Could not reach the chat assistant right now — please try again, or message us on WhatsApp.';
+    return jsonError(friendly, 502);
+  }
+
+  // Relay Gemini's server-sent events to the browser as plain text chunks
+  // (just the words themselves) — the widget appends each chunk as it
+  // arrives, so the reply visibly types itself out instead of the shopper
+  // waiting on a blank "Typing…" bubble for the whole answer to finish.
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const reader = upstream.body.getReader();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      let buffer = '';
+      let gotAnyText = false;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const jsonStr = trimmed.slice(5).trim();
+            if (!jsonStr) continue;
+            let event;
+            try {
+              event = JSON.parse(jsonStr);
+            } catch {
+              continue;
+            }
+            if (event.event_type === 'step.delta' && event.delta?.type === 'text' && event.delta.text) {
+              gotAnyText = true;
+              controller.enqueue(encoder.encode(event.delta.text));
+            } else if (event.event_type === 'error') {
+              console.error('Gemini stream reported an error event:', event);
+            }
+          }
+        }
+        if (!gotAnyText) {
+          controller.enqueue(
+            encoder.encode("Sorry, I couldn't put together a reply — please try again, or message us on WhatsApp.")
+          );
+        }
+      } catch (err) {
+        console.error('Chat stream error:', err);
+        if (!gotAnyText) {
+          controller.enqueue(encoder.encode('Something went wrong — please try again.'));
+        }
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: { 'content-type': 'text/plain; charset=utf-8' },
+  });
 }
