@@ -3,6 +3,7 @@ import { CartProvider } from '@/lib/cart-context';
 import { CurrencyProvider } from '@/lib/currency-context';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ChatWidget from '@/components/ChatWidget';
 import siteConfig from '@/components/SiteConfig';
 
 export const metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
             <Header />
             <main className="min-h-[60vh]">{children}</main>
             <Footer />
+            <ChatWidget />
           </CartProvider>
         </CurrencyProvider>
       </body>
