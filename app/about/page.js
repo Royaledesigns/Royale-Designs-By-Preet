@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { products } from '@/data/products';
 import siteConfig from '@/components/SiteConfig';
 
 export const metadata = { title: 'About | Royale Designs by Preet' };
@@ -9,7 +8,12 @@ export default function AboutPage() {
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="font-serif text-4xl text-forest-dark mb-6 text-center">Our Story</h1>
       <div className="relative aspect-[16/7] rounded-sm overflow-hidden mb-10">
-        <Image src={products[2].image} alt="Royale Designs by Preet" fill className="object-cover" />
+        <Image
+          src="/images/about-story-artisan.jpg"
+          alt="A Royale Designs by Preet lehenga being hand-finished at the loom, surrounded by design sketches and fabric"
+          fill
+          className="object-cover"
+        />
       </div>
       <div className="prose prose-lg max-w-none text-forest/80 leading-relaxed space-y-5">
         <p>
