@@ -68,7 +68,11 @@ export default async function ProductPage({ params }) {
           </div>
 
           <a
-            href={product.instagramPermalink || siteConfig.social.instagram}
+            href={
+              product.instagramLinkVerified && product.instagramPermalink
+                ? product.instagramPermalink
+                : siteConfig.social.instagram
+            }
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 mt-4 text-sm text-forest hover:text-gold underline underline-offset-2"
