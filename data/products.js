@@ -14,11 +14,14 @@ export const SHOE_SIZES = ['34', '35', '36', '37', '38', '39', '40', '41', '42']
 // Kids Wear uses age-based sizing instead of adult clothing sizes.
 export const KIDS_SIZES = ['2-3Y', '4-5Y', '6-7Y', '8-9Y', '10-11Y', '12-13Y'];
 
-// Jewellery categories aren't sized at all — no size picker shows for these.
-export const JEWELLERY_CATEGORIES = ['jewellery'];
+// Categories that aren't sized at all — sold as one size, with quantity as
+// the only choice. No size picker (or custom stitch option) shows for
+// these. Jewellery is one-size-fits-all; dupattas are a finished accessory
+// with nothing to size.
+export const NO_SIZE_CATEGORIES = ['jewellery', 'pakistani-mirror-dupattas'];
 
-export function isJewelleryCategory(category) {
-  return JEWELLERY_CATEGORIES.includes(category);
+export function isUnsizedCategory(category) {
+  return NO_SIZE_CATEGORIES.includes(category);
 }
 
 // Which size set applies to a given product category — clothing sizes
