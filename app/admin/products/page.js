@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { categories, getSizesForCategory, isJewelleryCategory } from '@/data/products';
+import { categories, getSizesForCategory, isUnsizedCategory } from '@/data/products';
 
 function emptyForm(product) {
   return {
@@ -32,7 +32,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const [error, setError] = useState('');
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const isDraft = product.status === 'draft';
-  const isJewellery = isJewelleryCategory(form.category);
+  const isUnsized = isUnsizedCategory(form.category);
   const sizeOptions = getSizesForCategory(form.category);
 
   function set(field, value) {
@@ -221,7 +221,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
           />
         </div>
 
-        {!isJewellery && (
+        {!isUnsized && (
           <div>
             <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
               Sizes ready to ship
@@ -253,7 +253,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
           </div>
         )}
 
-        {!isJewellery && (
+        {!isUnsized && (
           <label className="flex items-center gap-2 text-sm text-forest-dark">
             <input
               type="checkbox"
