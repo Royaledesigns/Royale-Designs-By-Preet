@@ -34,7 +34,7 @@ export default function InstagramFeed() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <h2 className="font-serif text-3xl text-forest-dark">Shop the Feed</h2>
-            <p className="text-sm text-forest/80 mt-1">Straight from Instagram — tap a photo to see the post.</p>
+            <p className="text-sm text-forest/80 mt-1">Straight from Instagram — tap a photo to visit our page.</p>
           </div>
           <a
             href={siteConfig.social.instagram}
@@ -50,11 +50,11 @@ export default function InstagramFeed() {
           {state.posts.map((post) => (
             <a
               key={post.id}
-              href={post.permalink}
+              href={siteConfig.social.instagram}
               target="_blank"
               rel="noreferrer"
               className="group relative aspect-square overflow-hidden rounded-sm bg-cream-dark block"
-              title={post.caption ? post.caption.slice(0, 120) : 'View on Instagram'}
+              title={post.caption ? post.caption.slice(0, 120) : 'Visit our Instagram'}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
