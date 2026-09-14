@@ -32,6 +32,15 @@ const SHIPPING_REGIONS = {
     display_name: 'International Shipping',
     delivery: { min: 6, max: 9 },
   },
+  // Free, no shipping address collected at all — for a local customer
+  // paying online and collecting the order in person. `pickup: true` is
+  // what tells the code below to skip the shipping section of Stripe
+  // Checkout entirely rather than just charging $0 for it.
+  PICKUP: {
+    pickup: true,
+    amount: 0,
+    display_name: 'Local Pickup — Tarneit, VIC',
+  },
 };
 
 export async function POST(request) {
@@ -94,21 +103,26 @@ export async function POST(request) {
     // they picked (display only — the real charge is always AUD). Carry
     // that same estimate onto the Stripe-hosted payment page itself, right
     // above the Pay button, so it doesn't disappear once they leave the
-    // site.
-    let custom_text;
+    // site. For a pickup order, add a reminder alongside it (or on its own)
+    // that this is a collect-in-person order.
+    const totalAud = subtotalAud + region.amount / 100;
+    const submitMessageParts = [];
     if (displayCurrency && displayCurrency !== 'AUD' && SUPPORTED_CURRENCIES.includes(displayCurrency)) {
-      const totalAud = subtotalAud + region.amount / 100;
       const { rates } = await getExchangeRates();
       const rate = rates[displayCurrency];
       if (rate) {
         const estimate = totalAud * rate;
-        custom_text = {
-          submit: {
-            message: `Approx. ${formatMoney(estimate, displayCurrency)} at today's rate — you'll be charged ${formatMoney(totalAud, 'AUD')} (AUD).`,
-          },
-        };
+        submitMessageParts.push(
+          `Approx. ${formatMoney(estimate, displayCurrency)} at today's rate — you'll be charged ${formatMoney(totalAud, 'AUD')} (AUD).`
+        );
       }
     }
+    if (region.pickup) {
+      submitMessageParts.push("Local pickup — we'll email you to arrange a time to collect your order from Tarneit, VIC.");
+    }
+    const custom_text = submitMessageParts.length
+      ? { submit: { message: submitMessageParts.join(' ') } }
+      : undefined;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -122,25 +136,28 @@ export async function POST(request) {
       // Stripe Dashboard first).
       payment_method_types: ['card'],
       line_items,
-      // Only the countries for the chosen destination are offered, so a
-      // shopper can't accidentally enter an address that doesn't match the
-      // shipping rate they were charged.
-      shipping_address_collection: { allowed_countries: region.countries },
-      // Only one rate — the one for the destination picked on the cart page
-      // — so nothing to choose (and nothing to get wrong) at checkout.
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: { amount: region.amount, currency: 'aud' },
-            display_name: region.display_name,
-            delivery_estimate: {
-              minimum: { unit: 'business_day', value: region.delivery.min },
-              maximum: { unit: 'business_day', value: region.delivery.max },
+      // Pickup orders skip the shipping section of Stripe Checkout
+      // entirely — no address form, no shipping line — rather than just
+      // charging $0 for shipping. Everyone else only sees the one rate (and
+      // matching countries) for the destination they picked on the cart
+      // page, so there's nothing to choose (and nothing to get wrong) at
+      // checkout.
+      ...(!region.pickup && {
+        shipping_address_collection: { allowed_countries: region.countries },
+        shipping_options: [
+          {
+            shipping_rate_data: {
+              type: 'fixed_amount',
+              fixed_amount: { amount: region.amount, currency: 'aud' },
+              display_name: region.display_name,
+              delivery_estimate: {
+                minimum: { unit: 'business_day', value: region.delivery.min },
+                maximum: { unit: 'business_day', value: region.delivery.max },
+              },
             },
           },
-        },
-      ],
+        ],
+      }),
       phone_number_collection: { enabled: true },
       // Always save a Customer record in Stripe for every order (not just
       // when Stripe would otherwise need one) — this is what makes every
