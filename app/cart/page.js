@@ -4,11 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/lib/cart-context';
+import { useCurrency } from '@/lib/currency-context';
 import Price from '@/components/Price';
-import { formatMoney } from '@/lib/currency';
+import { convert, formatMoney } from '@/lib/currency';
 
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal, hydrated } = useCart();
+  const { currency, rates } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shippingRegion, setShippingRegion] = useState('');
@@ -105,6 +107,11 @@ export default function CartPage() {
         <div className="text-right">
           <p className="text-sm text-forest/80">Subtotal</p>
           <p className="font-serif text-2xl text-forest-dark">{formatMoney(subtotal, 'AUD')}</p>
+          {currency !== 'AUD' && (
+            <p className="text-xs text-forest/80">
+              est. {formatMoney(convert(subtotal, currency, rates), currency)} — you're charged in AUD
+            </p>
+          )}
           <p className="text-xs text-forest/80">Taxes, if any, calculated at checkout.</p>
         </div>
 
