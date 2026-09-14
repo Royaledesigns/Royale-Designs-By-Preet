@@ -107,6 +107,11 @@ export async function POST(request) {
         },
       ],
       phone_number_collection: { enabled: true },
+      // Always save a Customer record in Stripe for every order (not just
+      // when Stripe would otherwise need one) — this is what makes every
+      // buyer show up, searchable, in your Stripe Dashboard → Customers,
+      // with their full order history attached.
+      customer_creation: 'always',
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
     });
