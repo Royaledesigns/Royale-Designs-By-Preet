@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { categories, getSizesForCategory, isUnsizedCategory } from '@/data/products';
 
 function emptyForm(product) {
@@ -431,9 +432,14 @@ export default function AdminProductsPage() {
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14">
       <div className="flex items-center justify-between mb-2">
         <h1 className="font-serif text-3xl text-forest-dark">Products</h1>
-        <button onClick={signOut} className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
-          Sign out
-        </button>
+        <div className="flex items-center gap-4">
+          <Link href="/admin/subscribers" className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
+            Subscribers
+          </Link>
+          <button onClick={signOut} className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
+            Sign out
+          </button>
+        </div>
       </div>
       <p className="text-sm text-forest/80 mb-6">
         {drafts.length} draft{drafts.length === 1 ? '' : 's'} · {published.length} live on the site
