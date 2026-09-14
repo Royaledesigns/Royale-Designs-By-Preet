@@ -8,12 +8,19 @@ import { useCurrency } from '@/lib/currency-context';
 import Price from '@/components/Price';
 import { convert, formatMoney } from '@/lib/currency';
 
+// Mirrors SHIPPING_REGIONS' `amount` (in cents) in app/api/checkout/route.js
+// — kept in sync there since that's what actually gets charged. This copy
+// is only used to show the shopper a running total on this page before they
+// reach Stripe.
+const SHIPPING_COST_AUD = { AU: 20, NZ: 30, INTL: 60 };
+
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal, hydrated } = useCart();
   const { currency, rates } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shippingRegion, setShippingRegion] = useState('');
+  const orderTotalAud = subtotal + (shippingRegion ? SHIPPING_COST_AUD[shippingRegion] : 0);
 
   async function handleCheckout() {
     if (!shippingRegion) {
@@ -26,7 +33,7 @@ export default function CartPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingRegion }),
+        body: JSON.stringify({ items, shippingRegion, displayCurrency: currency }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -104,12 +111,25 @@ export default function CartPage() {
       </div>
 
       <div className="mt-10 flex flex-col items-end gap-4">
-        <div className="text-right">
-          <p className="text-sm text-forest/80">Subtotal</p>
-          <p className="font-serif text-2xl text-forest-dark">{formatMoney(subtotal, 'AUD')}</p>
+        <div className="w-full sm:w-72 text-right space-y-1.5">
+          <div className="flex items-baseline justify-between text-sm text-forest/80">
+            <span>Subtotal</span>
+            <span>{formatMoney(subtotal, 'AUD')}</span>
+          </div>
+          {shippingRegion && (
+            <div className="flex items-baseline justify-between text-sm text-forest/80">
+              <span>Shipping</span>
+              <span>{formatMoney(SHIPPING_COST_AUD[shippingRegion], 'AUD')}</span>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between font-serif text-2xl text-forest-dark pt-1.5 border-t border-forest/10">
+            <span className="text-sm font-sans uppercase tracking-wide text-forest/80">Total</span>
+            <span>{formatMoney(orderTotalAud, 'AUD')}</span>
+          </div>
           {currency !== 'AUD' && (
             <p className="text-xs text-forest/80">
-              est. {formatMoney(convert(subtotal, currency, rates), currency)} — you're charged in AUD
+              est. {formatMoney(convert(orderTotalAud, currency, rates), currency)} in {currency}
+              {!shippingRegion && ' (excl. shipping)'} — you're charged in AUD
             </p>
           )}
           <p className="text-xs text-forest/80">Taxes, if any, calculated at checkout.</p>
