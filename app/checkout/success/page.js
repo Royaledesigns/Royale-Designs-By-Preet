@@ -5,12 +5,17 @@ import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
 
 export default function CheckoutSuccessPage() {
-  const { clearCart } = useCart();
+  const { clearCart, hydrated } = useCart();
 
   useEffect(() => {
-    clearCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Wait until the cart has finished restoring itself from the browser's
+    // storage before clearing it. Otherwise, on a fresh page load (which is
+    // what happens when Stripe redirects back here), the restore can finish
+    // AFTER this clear does — silently bringing the old cart back.
+    if (hydrated) {
+      clearCart();
+    }
+  }, [hydrated, clearCart]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-24 text-center">
