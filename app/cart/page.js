@@ -12,7 +12,7 @@ import { convert, formatMoney } from '@/lib/currency';
 // — kept in sync there since that's what actually gets charged. This copy
 // is only used to show the shopper a running total on this page before they
 // reach Stripe.
-const SHIPPING_COST_AUD = { AU: 20, NZ: 30, INTL: 60 };
+const SHIPPING_COST_AUD = { AU: 20, NZ: 30, INTL: 60, PICKUP: 0 };
 
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal, hydrated } = useCart();
@@ -24,7 +24,7 @@ export default function CartPage() {
 
   async function handleCheckout() {
     if (!shippingRegion) {
-      setError('Please select a shipping destination.');
+      setError('Please select a shipping or pickup option.');
       return;
     }
     setLoading(true);
@@ -118,8 +118,8 @@ export default function CartPage() {
           </div>
           {shippingRegion && (
             <div className="flex items-baseline justify-between text-sm text-forest/80">
-              <span>Shipping</span>
-              <span>{formatMoney(SHIPPING_COST_AUD[shippingRegion], 'AUD')}</span>
+              <span>{shippingRegion === 'PICKUP' ? 'Pickup' : 'Shipping'}</span>
+              <span>{shippingRegion === 'PICKUP' ? 'Free' : formatMoney(SHIPPING_COST_AUD[shippingRegion], 'AUD')}</span>
             </div>
           )}
           <div className="flex items-baseline justify-between font-serif text-2xl text-forest-dark pt-1.5 border-t border-forest/10">
@@ -137,14 +137,15 @@ export default function CartPage() {
 
         <div className="w-full sm:w-72 text-right">
           <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
-            Shipping destination
+            Shipping or pickup
           </label>
           <select
             value={shippingRegion}
             onChange={(e) => setShippingRegion(e.target.value)}
             className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-gold"
           >
-            <option value="">Select where you're shipping to…</option>
+            <option value="">Select shipping or pickup…</option>
+            <option value="PICKUP">Local Pickup — Tarneit, VIC (Free)</option>
             <option value="AU">Australia — $20 shipping</option>
             <option value="NZ">New Zealand — $30 shipping</option>
             <option value="INTL">USA, Canada, UK or Europe — $60 shipping</option>
