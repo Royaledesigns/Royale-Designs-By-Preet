@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,14 +28,45 @@ function emptyForm(product) {
   };
 }
 
+// A brand-new, not-yet-saved product added via "Add new product". It has
+// no real id yet — that's assigned once it's actually saved — so it's
+// tracked locally by _localKey instead until then.
+function blankProduct() {
+  return {
+    _localKey: `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: null,
+    title: '',
+    category: '',
+    price: '',
+    description: '',
+    customStitch: true,
+    availableSizes: [],
+    soldOut: false,
+    image: null,
+    status: 'draft',
+    source: 'manual',
+    instagramMediaId: null,
+    instagramPermalink: null,
+    instagramLinkVerified: false,
+    isNew: true,
+  };
+}
+
 function ProductCard({ product, onSaved, onDeleted }) {
   const [form, setForm] = useState(emptyForm(product));
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [generatingTitle, setGeneratingTitle] = useState(false);
+  const fileInputRef = useRef(null);
+  // Deliberately reads product.status (the live prop), not form.status —
+  // that way the Publish/Unpublish buttons update immediately once the
+  // parent swaps in the saved record, without disturbing the rest of the
+  // form (which stays as whatever the user has typed).
   const isDraft = product.status === 'draft';
   const isUnsized = isUnsizedCategory(form.category);
   const sizeOptions = getSizesForCategory(form.category);
+  const isUnsavedNew = product.isNew && !product.id;
 
   function set(field, value) {
     if (field === 'category') {
@@ -63,7 +94,32 @@ function ProductCard({ product, onSaved, onDeleted }) {
     });
   }
 
+  async function handlePhotoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not upload that photo.');
+      set('image', data.url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      // Reset so choosing the same file again still fires a change event.
+      e.target.value = '';
+    }
+  }
+
   async function save(nextStatus) {
+    if (!form.image) {
+      setError('Add a photo first.');
+      return;
+    }
     if (!form.title || form.title.trim() === '') {
       setError('Please add a title.');
       return;
@@ -82,11 +138,14 @@ function ProductCard({ product, onSaved, onDeleted }) {
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, status: nextStatus }),
+        // Explicitly send null (never the local-only placeholder key) so a
+        // brand-new product gets a real id slugified from its title,
+        // instead of accidentally using the temporary key as its id.
+        body: JSON.stringify({ ...form, id: form.id || null, status: nextStatus }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save.');
-      onSaved(data.product);
+      onSaved(data.product, product._localKey);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -115,6 +174,11 @@ function ProductCard({ product, onSaved, onDeleted }) {
   }
 
   async function remove() {
+    if (isUnsavedNew) {
+      // Never saved — nothing to delete server-side, just drop it.
+      onDeleted(product._localKey, true);
+      return;
+    }
     if (!confirm(`${isDraft ? 'Discard' : 'Delete'} "${form.title}"? This can't be undone.`)) return;
     setSaving(true);
     try {
@@ -130,7 +194,13 @@ function ProductCard({ product, onSaved, onDeleted }) {
   return (
     <div className="border border-forest/15 rounded-sm bg-white p-4 flex flex-col sm:flex-row gap-4">
       <div className="relative w-full sm:w-32 aspect-[3/4] sm:aspect-square flex-none rounded-sm overflow-hidden bg-cream-dark">
-        {form.image && <Image src={form.image} alt={form.title} fill className="object-cover" unoptimized />}
+        {form.image ? (
+          <Image src={form.image} alt={form.title || 'Product photo'} fill className="object-cover" unoptimized />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-center text-[11px] text-forest/50 px-2">
+            No photo yet
+          </div>
+        )}
         {form.soldOut && (
           <div className="absolute inset-0 bg-forest-dark/50 flex items-center justify-center">
             <span className="text-cream text-xs uppercase tracking-widest border border-cream px-2 py-1">
@@ -138,12 +208,24 @@ function ProductCard({ product, onSaved, onDeleted }) {
             </span>
           </div>
         )}
+        <label className="absolute inset-x-0 bottom-0 bg-forest-dark/85 text-cream text-[10px] uppercase tracking-wide text-center py-1.5 cursor-pointer hover:bg-forest-dark">
+          {uploading ? 'Uploading…' : form.image ? 'Change photo' : 'Upload photo'}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            onChange={handlePhotoChange}
+            disabled={uploading}
+            className="hidden"
+          />
+        </label>
       </div>
 
       <div className="flex-1 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <span className="text-[10px] uppercase tracking-widest text-gold-dark">
-            {product.source === 'instagram' ? 'From Instagram' : 'Manual'} · {product.status}
+            {product.source === 'instagram' ? 'From Instagram' : isUnsavedNew ? 'New product' : 'Manual'} ·{' '}
+            {product.status}
           </span>
           <div className="flex items-center gap-3">
             {product.instagramPermalink && (
@@ -185,6 +267,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
+            placeholder={isUnsavedNew ? 'e.g. Emerald Green Embellished Lehenga' : ''}
             className="w-full border border-forest/20 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold"
           />
         </div>
@@ -229,41 +312,43 @@ function ProductCard({ product, onSaved, onDeleted }) {
           />
         </div>
 
-        <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1">
-            Instagram link
-          </label>
-          <input
-            value={form.instagramPermalink || ''}
-            onChange={(e) => set('instagramPermalink', e.target.value)}
-            placeholder="https://www.instagram.com/reel/..."
-            className="w-full border border-forest/20 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-          />
-          <p className="text-[11px] text-forest/60 mt-1.5">
-            Auto-filled when a post syncs from Instagram — occasionally wrong for collab/repost
-            posts. Click it below to check it opens the right video, then tick the box — until
-            you do, the product page safely links to your Instagram profile instead of this post.
-          </p>
-          {form.instagramPermalink && (
-            <a
-              href={form.instagramPermalink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-block text-xs underline text-forest/80 hover:text-gold mt-1.5"
-            >
-              Open this link to check it →
-            </a>
-          )}
-          <label className="flex items-center gap-2 text-sm text-forest-dark mt-2">
+        {product.source === 'instagram' && (
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1">
+              Instagram link
+            </label>
             <input
-              type="checkbox"
-              checked={form.instagramLinkVerified}
-              disabled={!form.instagramPermalink}
-              onChange={(e) => set('instagramLinkVerified', e.target.checked)}
+              value={form.instagramPermalink || ''}
+              onChange={(e) => set('instagramPermalink', e.target.value)}
+              placeholder="https://www.instagram.com/reel/..."
+              className="w-full border border-forest/20 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold"
             />
-            I checked this link and it opens the correct video
-          </label>
-        </div>
+            <p className="text-[11px] text-forest/60 mt-1.5">
+              Auto-filled when a post syncs from Instagram — occasionally wrong for collab/repost
+              posts. Click it below to check it opens the right video, then tick the box — until
+              you do, the product page safely links to your Instagram profile instead of this post.
+            </p>
+            {form.instagramPermalink && (
+              <a
+                href={form.instagramPermalink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block text-xs underline text-forest/80 hover:text-gold mt-1.5"
+              >
+                Open this link to check it →
+              </a>
+            )}
+            <label className="flex items-center gap-2 text-sm text-forest-dark mt-2">
+              <input
+                type="checkbox"
+                checked={form.instagramLinkVerified}
+                disabled={!form.instagramPermalink}
+                onChange={(e) => set('instagramLinkVerified', e.target.checked)}
+              />
+              I checked this link and it opens the correct video
+            </label>
+          </div>
+        )}
 
         {!isUnsized && (
           <div>
@@ -409,12 +494,21 @@ export default function AdminProductsPage() {
     router.push('/admin/login');
   }
 
-  function handleSaved(updated) {
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  function addNewProduct() {
+    setProducts((prev) => [blankProduct(), ...(prev || [])]);
   }
 
-  function handleDeleted(id) {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  function handleSaved(updated, localKey) {
+    setProducts((prev) =>
+      prev.map((p) => {
+        const matches = localKey ? p._localKey === localKey : p.id === updated.id;
+        return matches ? updated : p;
+      })
+    );
+  }
+
+  function handleDeleted(key, isLocalOnly) {
+    setProducts((prev) => prev.filter((p) => (isLocalOnly ? p._localKey !== key : p.id !== key)));
   }
 
   if (loadError) {
@@ -445,13 +539,26 @@ export default function AdminProductsPage() {
         {drafts.length} draft{drafts.length === 1 ? '' : 's'} · {published.length} live on the site
       </p>
 
-      <button
-        onClick={checkInstagram}
-        disabled={syncing}
-        className="w-full sm:w-auto bg-forest text-cream px-6 py-3 uppercase text-sm tracking-widest hover:bg-forest-dark disabled:opacity-60 mb-2"
-      >
-        {syncing ? 'Checking…' : 'Check Instagram for new posts'}
-      </button>
+      <div className="flex flex-wrap gap-2 mb-2">
+        <button
+          onClick={addNewProduct}
+          className="w-full sm:w-auto border border-forest text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream"
+        >
+          + Add New Product
+        </button>
+        <button
+          onClick={checkInstagram}
+          disabled={syncing}
+          className="w-full sm:w-auto bg-forest text-cream px-6 py-3 uppercase text-sm tracking-widest hover:bg-forest-dark disabled:opacity-60"
+        >
+          {syncing ? 'Checking…' : 'Check Instagram for new posts'}
+        </button>
+      </div>
+      <p className="text-[11px] text-forest/60 mb-6">
+        Adding a new product? Tap &quot;Upload photo&quot; on the blank card below — on your
+        iPhone this opens the option to take a photo or choose one from your library, no need to
+        post it to Instagram first.
+      </p>
       {syncMessage && <p className="text-sm text-forest/80 mb-8">{syncMessage}</p>}
 
       <section className="mb-12">
@@ -460,12 +567,12 @@ export default function AdminProductsPage() {
         </h2>
         {drafts.length === 0 ? (
           <p className="text-sm text-forest/80">
-            No drafts right now. New Instagram posts land here — check the button above after posting.
+            No drafts right now. Add one with the button above, or check Instagram for new posts.
           </p>
         ) : (
           <div className="space-y-4">
             {drafts.map((p) => (
-              <ProductCard key={p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+              <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
             ))}
           </div>
         )}
@@ -478,7 +585,7 @@ export default function AdminProductsPage() {
         ) : (
           <div className="space-y-4">
             {published.map((p) => (
-              <ProductCard key={p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+              <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
             ))}
           </div>
         )}
