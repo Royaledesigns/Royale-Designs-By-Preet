@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { addSubscriber } from '@/lib/subscribers';
+import { appendToSheet } from '@/lib/google-sheet';
 
 // Handles the Contact page form, the footer newsletter signup, and the
 // custom-measurements form on the Custom Tailoring page.
@@ -6,12 +8,33 @@ import { NextResponse } from 'next/server';
 // Otherwise submissions are just logged server-side so nothing is lost while
 // you're still setting email delivery up — wire in your preferred provider
 // (Resend, SendGrid, Postmark, etc.) here when you're ready.
+//
+// Newsletter signups are additionally saved to the customer database (see
+// lib/subscribers.js + /admin/subscribers) — that's the one submission type
+// here that represents someone you'll want to look back up later, rather
+// than a one-off message. Newsletter signups and contact messages are also
+// synced to your Google Sheet if GOOGLE_SHEET_WEBHOOK_URL is set (see
+// README.md "Google Sheet customer sync") — completed orders sync there
+// too, from app/api/webhooks/stripe/route.js.
 export async function POST(request) {
   const body = await request.json();
   const { type = 'contact', name = '', email, message } = body;
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required.' }, { status: 400 });
+  }
+
+  if (type === 'newsletter') {
+    try {
+      await addSubscriber({ email, name });
+    } catch (err) {
+      // Don't let a database hiccup block the signup confirmation — the
+      // email notification below is still the fallback record.
+      console.error('Could not save newsletter subscriber:', err);
+    }
+    await appendToSheet({ type: 'Newsletter Signup', name, email });
+  } else if (type === 'contact') {
+    await appendToSheet({ type: 'Contact Form', name, email, details: message });
   }
 
   const toEmail = process.env.CONTACT_TO_EMAIL || 'prabhpreet.maan@yahoo.com';
