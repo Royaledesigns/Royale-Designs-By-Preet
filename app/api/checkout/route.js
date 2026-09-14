@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getProduct } from '@/lib/catalog';
+import { getExchangeRates } from '@/lib/exchange-rates-server';
+import { formatMoney, SUPPORTED_CURRENCIES } from '@/lib/currency-shared';
 
 const EU_COUNTRIES = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'IE', 'PT', 'AT', 'SE', 'DK', 'FI'];
 
@@ -47,7 +49,7 @@ export async function POST(request) {
   const stripe = new Stripe(secretKey, { apiVersion: '2024-06-20' });
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get('origin') || 'http://localhost:3000';
 
-  const { items, shippingRegion } = await request.json();
+  const { items, shippingRegion, displayCurrency } = await request.json();
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
@@ -63,26 +65,50 @@ export async function POST(request) {
     // including products added through /admin/products) rather than
     // trusting the client, so the amount actually charged always matches
     // what's on the site right now.
-    const line_items = await Promise.all(
+    const priced = await Promise.all(
       items.map(async (item) => {
         const product = await getProduct(item.handle);
         if (!product) {
           throw new Error(`"${item.title || item.handle}" is no longer available — please remove it from your cart.`);
         }
-        return {
-          quantity: item.qty,
-          price_data: {
-            currency: 'aud',
-            unit_amount: Math.round(product.price * 100),
-            product_data: {
-              name: item.size === 'One Size' ? product.title : `${product.title} — Size: ${item.size}`,
-              images: [product.image],
-              metadata: { handle: product.handle, size: item.size },
-            },
-          },
-        };
+        return { item, product };
       })
     );
+
+    const subtotalAud = priced.reduce((sum, { item, product }) => sum + product.price * item.qty, 0);
+
+    const line_items = priced.map(({ item, product }) => ({
+      quantity: item.qty,
+      price_data: {
+        currency: 'aud',
+        unit_amount: Math.round(product.price * 100),
+        product_data: {
+          name: item.size === 'One Size' ? product.title : `${product.title} — Size: ${item.size}`,
+          images: [product.image],
+          metadata: { handle: product.handle, size: item.size },
+        },
+      },
+    }));
+
+    // The cart page shows shoppers an estimated total in whatever currency
+    // they picked (display only — the real charge is always AUD). Carry
+    // that same estimate onto the Stripe-hosted payment page itself, right
+    // above the Pay button, so it doesn't disappear once they leave the
+    // site.
+    let custom_text;
+    if (displayCurrency && displayCurrency !== 'AUD' && SUPPORTED_CURRENCIES.includes(displayCurrency)) {
+      const totalAud = subtotalAud + region.amount / 100;
+      const { rates } = await getExchangeRates();
+      const rate = rates[displayCurrency];
+      if (rate) {
+        const estimate = totalAud * rate;
+        custom_text = {
+          submit: {
+            message: `Approx. ${formatMoney(estimate, displayCurrency)} at today's rate — you'll be charged ${formatMoney(totalAud, 'AUD')} (AUD).`,
+          },
+        };
+      }
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -114,6 +140,7 @@ export async function POST(request) {
       customer_creation: 'always',
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
+      ...(custom_text && { custom_text }),
     });
 
     return NextResponse.json({ url: session.url });
