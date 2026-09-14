@@ -112,6 +112,15 @@ export async function POST(request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      // Card only. Without this, Stripe can auto-detect a returning "Link"
+      // user by email and skip straight to Link's own saved-card screen
+      // instead of your checkout's normal card form — jarring for a
+      // customer who's never used Link on your site before. Pinning this to
+      // card keeps the payment step consistent for everyone (drop 'card'
+      // into an array with 'klarna' / 'afterpay_clearpay' etc. later if you
+      // want to bring those back — just make sure they're enabled in your
+      // Stripe Dashboard first).
+      payment_method_types: ['card'],
       line_items,
       // Only the countries for the chosen destination are offered, so a
       // shopper can't accidentally enter an address that doesn't match the
