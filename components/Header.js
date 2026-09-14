@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { categories } from '@/data/products';
 import siteConfig from './SiteConfig';
+import CurrencySwitcher from './CurrencySwitcher';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -91,6 +92,7 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <CurrencySwitcher />
             <Link
               href="/cart"
               className="relative inline-flex items-center justify-center rounded-full border border-forest/20 w-10 h-10 hover:bg-forest hover:text-cream transition-colors"
