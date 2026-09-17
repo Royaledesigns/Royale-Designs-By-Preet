@@ -84,6 +84,51 @@ function ProductCard({ product, onSaved, onDeleted }) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
+  // "Mark sold out" needs to stick right away — it was previously just
+  // local form state, so if you toggled it and then navigated off (e.g.
+  // tapped "View post") without also hitting Save/Publish, it silently
+  // reverted. This saves the toggle on its own, straight to the server,
+  // built from the last-saved product record (not the in-progress form) so
+  // it can't accidentally push other half-edited fields live.
+  async function toggleSoldOut() {
+    const nextSoldOut = !form.soldOut;
+    setForm((f) => ({ ...f, soldOut: nextSoldOut }));
+    if (!product.id) return; // not saved yet — will go out with the next save
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: product.id,
+          title: product.title,
+          category: product.category,
+          price: product.price,
+          description: product.description,
+          customStitch: product.customStitch,
+          availableSizes: product.availableSizes,
+          soldOut: nextSoldOut,
+          image: product.image,
+          status: product.status,
+          source: product.source,
+          instagramMediaId: product.instagramMediaId,
+          instagramPermalink: product.instagramPermalink,
+          instagramLinkVerified: product.instagramLinkVerified,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not update.');
+      onSaved(data.product, product._localKey);
+    } catch (err) {
+      setError(err.message);
+      // Didn't actually save — put the button back the way it was.
+      setForm((f) => ({ ...f, soldOut: !nextSoldOut }));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function toggleSize(size) {
     setForm((f) => {
       const isActive = f.availableSizes.includes(size);
@@ -240,8 +285,9 @@ function ProductCard({ product, onSaved, onDeleted }) {
             )}
             <button
               type="button"
-              onClick={() => set('soldOut', !form.soldOut)}
-              className={`text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-sm border transition-colors ${
+              onClick={toggleSoldOut}
+              disabled={saving}
+              className={`text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-sm border transition-colors disabled:opacity-60 ${
                 form.soldOut
                   ? 'bg-red-700 text-cream border-red-700'
                   : 'border-forest/20 text-forest/70 hover:bg-cream-dark'
