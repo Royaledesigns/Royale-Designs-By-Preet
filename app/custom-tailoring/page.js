@@ -2,7 +2,10 @@ import Link from 'next/link';
 import siteConfig from '@/components/SiteConfig';
 import MeasurementForm from '@/components/MeasurementForm';
 
-export const metadata = { title: 'Custom Made For You | Royale Designs by Preet' };
+export const metadata = {
+  title: 'Custom Made For You',
+  description: `Custom-stitched bridal & ethnic wear from ${siteConfig.name} — share your measurements and we'll tailor your piece to fit.`,
+};
 
 // Women's size chart — all measurements in inches. Update here if your
 // sizing ever changes; the table below is generated from this data.
