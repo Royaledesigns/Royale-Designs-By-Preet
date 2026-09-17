@@ -1,6 +1,9 @@
 import siteConfig from '@/components/SiteConfig';
 
-export const metadata = { title: 'Shipping & Returns | Royale Designs by Preet' };
+export const metadata = {
+  title: 'Shipping & Returns',
+  description: `Shipping rates, delivery times and our returns policy for orders from ${siteConfig.name}, shipped to Australia, the USA, Canada, the UK, New Zealand and Europe.`,
+};
 
 export default function ShippingReturnsPage() {
   return (
