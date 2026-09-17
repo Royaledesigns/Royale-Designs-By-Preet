@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { appendToSheet } from '@/lib/google-sheet';
+import { decrementSizeStock } from '@/lib/catalog';
 
 // Stripe calls this endpoint directly (server-to-server) the moment an
 // order is actually paid — this is what lets a completed order sync to
@@ -35,8 +36,22 @@ export async function POST(request) {
     const session = event.data.object;
 
     try {
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+      // Expanding price.product recovers the { handle, size } metadata we
+      // attached at checkout (see app/api/checkout/route.js) — needed below
+      // to take ready-made stock down by the size actually bought, now
+      // that the payment has actually gone through.
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        limit: 100,
+        expand: ['data.price.product'],
+      });
       const itemsSummary = lineItems.data.map((li) => `${li.quantity}× ${li.description}`).join(', ');
+
+      for (const li of lineItems.data) {
+        const meta = li.price?.product?.metadata;
+        if (meta?.handle && meta?.size) {
+          await decrementSizeStock(meta.handle, meta.size, li.quantity || 1);
+        }
+      }
 
       const details = session.customer_details || {};
       const addr = details.address || {};
