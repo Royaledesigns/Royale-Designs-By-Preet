@@ -1,7 +1,10 @@
 import ContactForm from '@/components/ContactForm';
 import siteConfig from '@/components/SiteConfig';
 
-export const metadata = { title: 'Contact | Royale Designs by Preet' };
+export const metadata = {
+  title: 'Contact',
+  description: `Get in touch with ${siteConfig.name} — based in ${siteConfig.location}, shipping to Australia, the USA, Canada, the UK, New Zealand and Europe.`,
+};
 
 export default function ContactPage() {
   return (
