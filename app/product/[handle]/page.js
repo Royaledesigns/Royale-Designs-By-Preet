@@ -7,16 +7,47 @@ import ProductCard from '@/components/ProductCard';
 import AddToCartForm from '@/components/AddToCartForm';
 import siteConfig from '@/components/SiteConfig';
 
+// Same canonical domain as app/layout.js — used below for the Product
+// structured data's absolute URL.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.royaledesigns.com.au';
+
 // Products can be added at any time from the admin dashboard (including
 // ones pulled in from Instagram), so this page is rendered on demand rather
 // than pre-built at deploy time — revalidate keeps it cached briefly for
 // speed without needing a redeploy for new products to appear.
 export const revalidate = 30;
 
+// Search-result snippets get cut off around 155-160 characters, so a
+// meta description longer than that just gets truncated by Google anyway —
+// this trims it ourselves, on a clean word boundary, instead.
+function truncate(text, max) {
+  if (!text) return '';
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
+}
+
 export async function generateMetadata({ params }) {
   const { handle } = await params;
   const product = await getProduct(handle);
-  return { title: product ? `${product.title} | Royale Designs by Preet` : 'Product' };
+  if (!product) return { title: 'Product' };
+
+  const description =
+    truncate(product.description, 155) ||
+    `${product.title} — premium South Asian bridal & ethnic wear from ${siteConfig.name}, thoughtfully customised for you.`;
+
+  return {
+    title: product.title,
+    description,
+    // Overrides the site-wide default share image (see app/layout.js) with
+    // this specific product's photo, so sharing a product link on
+    // Instagram/WhatsApp/iMessage shows the actual piece, not the homepage
+    // hero.
+    openGraph: {
+      title: product.title,
+      description,
+      images: [{ url: product.image, alt: product.title }],
+    },
+  };
 }
 
 export default async function ProductPage({ params }) {
@@ -28,8 +59,31 @@ export default async function ProductPage({ params }) {
     .filter((p) => p.handle !== product.handle)
     .slice(0, 4);
 
+  // Lets Google show price/stock status directly in search results instead
+  // of just a plain blue link. See https://schema.org/Product.
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    image: [product.image],
+    description: product.description || undefined,
+    sku: product.handle,
+    brand: { '@type': 'Brand', name: siteConfig.name },
+    offers: {
+      '@type': 'Offer',
+      url: `${SITE_URL}/product/${product.handle}`,
+      priceCurrency: 'AUD',
+      price: product.price,
+      availability: product.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+    },
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <nav className="text-xs text-forest/80 mb-6">
         <Link href="/shop" className="hover:text-gold">Shop</Link>
         {' / '}
