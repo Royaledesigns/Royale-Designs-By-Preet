@@ -3,7 +3,11 @@ import { categories } from '@/data/products';
 import { getAllProducts } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
-export const metadata = { title: 'Shop All | Royale Designs by Preet' };
+export const metadata = {
+  title: 'Shop All',
+  description:
+    'Browse the full collection — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
+};
 export const revalidate = 30;
 
 export default async function ShopPage() {
