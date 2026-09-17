@@ -1,7 +1,10 @@
 import Image from 'next/image';
 import siteConfig from '@/components/SiteConfig';
 
-export const metadata = { title: 'About | Royale Designs by Preet' };
+export const metadata = {
+  title: 'About',
+  description: `The story behind ${siteConfig.name} — premium South Asian bridal & ethnic wear, based in ${siteConfig.location}.`,
+};
 
 export default function AboutPage() {
   return (
