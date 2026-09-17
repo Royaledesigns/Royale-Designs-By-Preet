@@ -20,7 +20,13 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    const hasSizes = Array.isArray(body.availableSizes) && body.availableSizes.length > 0;
+    const hasSizes = Array.isArray(body.availableSizes)
+      ? body.availableSizes.length > 0
+      : Boolean(
+          body.availableSizes &&
+            typeof body.availableSizes === 'object' &&
+            Object.values(body.availableSizes).some((qty) => Number(qty) > 0)
+        );
     if (body.status === 'published' && !body.soldOut && !hasSizes && body.customStitch === false) {
       return NextResponse.json(
         {
