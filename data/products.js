@@ -24,6 +24,30 @@ export function isUnsizedCategory(category) {
   return NO_SIZE_CATEGORIES.includes(category);
 }
 
+// `product.availableSizes` has two possible shapes, for backwards
+// compatibility:
+//   - legacy: an array of size strings, e.g. ['M', 'L'] — meaning "ready in
+//     this size", with no quantity tracked (treated as unlimited stock).
+//   - current: an object of size -> quantity, e.g. { M: 2, L: 3 } — the
+//     exact number of ready-made pieces left in each size. A size hits 0
+//     once that many have sold, and falls back to custom stitch (if the
+//     product allows it) automatically.
+// This normalizes either shape into a single { size: quantity } map so the
+// rest of the app only has to deal with one format. `allSizes` is only used
+// for the oldest fallback case: a product saved before this feature existed
+// at all, where `availableSizes` is undefined and every size was shown as
+// ready (unlimited) by default.
+export function getSizeStock(availableSizes, allSizes = []) {
+  if (availableSizes === undefined) {
+    return allSizes.reduce((acc, s) => ({ ...acc, [s]: Infinity }), {});
+  }
+  if (!availableSizes) return {};
+  if (Array.isArray(availableSizes)) {
+    return availableSizes.reduce((acc, s) => ({ ...acc, [s]: Infinity }), {});
+  }
+  return availableSizes;
+}
+
 // Which size set applies to a given product category — clothing sizes
 // everywhere except footwear (EU shoe sizes) and kids wear (age-based sizes).
 export function getSizesForCategory(category) {
