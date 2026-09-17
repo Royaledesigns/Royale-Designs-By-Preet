@@ -9,7 +9,11 @@ export const revalidate = 30;
 export async function generateMetadata({ params }) {
   const { category: categorySlug } = await params;
   const category = getCategory(categorySlug);
-  return { title: category ? `${category.label} | Royale Designs by Preet` : 'Shop' };
+  if (!category) return { title: 'Shop' };
+  return {
+    title: category.label,
+    description: `Shop ${category.label.toLowerCase()} — premium South Asian bridal & ethnic wear, thoughtfully customised for you and delivered worldwide.`,
+  };
 }
 
 export default async function CategoryPage({ params }) {
