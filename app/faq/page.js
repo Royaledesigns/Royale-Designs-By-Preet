@@ -1,6 +1,9 @@
 import siteConfig from '@/components/SiteConfig';
 
-export const metadata = { title: 'FAQ | Royale Designs by Preet' };
+export const metadata = {
+  title: 'FAQ',
+  description: `Answers to common questions about ordering, sizing, customisation and delivery from ${siteConfig.name}.`,
+};
 
 const faqs = [
   {
