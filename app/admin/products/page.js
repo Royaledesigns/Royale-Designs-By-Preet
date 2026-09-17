@@ -509,6 +509,10 @@ export default function AdminProductsPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [loadError, setLoadError] = useState('');
+  // Which tab is showing — starts on Unpublished since that's usually the
+  // "needs action" inbox (new Instagram drafts, pieces you haven't priced
+  // yet), with Published as the other tab rather than both lists stacked.
+  const [activeTab, setActiveTab] = useState('unpublished');
   const router = useRouter();
 
   const load = useCallback(async () => {
@@ -541,6 +545,7 @@ export default function AdminProductsPage() {
           ? `Found ${data.added} new post${data.added === 1 ? '' : 's'} — added below as draft${data.added === 1 ? '' : 's'}.`
           : 'No new posts since last check.'
       );
+      if (data.added > 0) setActiveTab('unpublished');
       await load();
     } catch (err) {
       setSyncMessage(err.message);
@@ -556,9 +561,18 @@ export default function AdminProductsPage() {
 
   function addNewProduct() {
     setProducts((prev) => [blankProduct(), ...(prev || [])]);
+    setActiveTab('unpublished');
   }
 
   function handleSaved(updated, localKey) {
+    // Follow a product across tabs when its status actually changed —
+    // hitting Publish moves it to the Published tab, Unpublish moves it
+    // back — rather than leaving it to seemingly vanish from the tab
+    // you're looking at.
+    const previous = (products || []).find((p) => (localKey ? p._localKey === localKey : p.id === updated.id));
+    if (previous && previous.status !== updated.status) {
+      setActiveTab(updated.status === 'published' ? 'published' : 'unpublished');
+    }
     setProducts((prev) =>
       prev.map((p) => {
         const matches = localKey ? p._localKey === localKey : p.id === updated.id;
@@ -621,35 +635,60 @@ export default function AdminProductsPage() {
       </p>
       {syncMessage && <p className="text-sm text-forest/80 mb-8">{syncMessage}</p>}
 
-      <section className="mb-12">
-        <h2 className="font-serif text-xl text-forest-dark mb-4">
-          Drafts {drafts.length > 0 && `(${drafts.length})`}
-        </h2>
-        {drafts.length === 0 ? (
-          <p className="text-sm text-forest/80">
-            No drafts right now. Add one with the button above, or check Instagram for new posts.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {drafts.map((p) => (
-              <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
-            ))}
-          </div>
-        )}
-      </section>
+      <div className="flex gap-1 border-b border-forest/15 mb-6">
+        <button
+          type="button"
+          onClick={() => setActiveTab('unpublished')}
+          aria-current={activeTab === 'unpublished'}
+          className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
+            activeTab === 'unpublished'
+              ? 'border-forest text-forest-dark'
+              : 'border-transparent text-forest/50 hover:text-forest-dark'
+          }`}
+        >
+          Unpublished {drafts.length > 0 && `(${drafts.length})`}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('published')}
+          aria-current={activeTab === 'published'}
+          className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
+            activeTab === 'published'
+              ? 'border-forest text-forest-dark'
+              : 'border-transparent text-forest/50 hover:text-forest-dark'
+          }`}
+        >
+          Published {published.length > 0 && `(${published.length})`}
+        </button>
+      </div>
 
-      <section>
-        <h2 className="font-serif text-xl text-forest-dark mb-4">Live on the site</h2>
-        {published.length === 0 ? (
-          <p className="text-sm text-forest/80">Nothing published yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {published.map((p) => (
-              <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
-            ))}
-          </div>
-        )}
-      </section>
+      {activeTab === 'unpublished' ? (
+        <section>
+          {drafts.length === 0 ? (
+            <p className="text-sm text-forest/80">
+              No drafts right now. Add one with the button above, or check Instagram for new posts.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {drafts.map((p) => (
+                <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
+        <section>
+          {published.length === 0 ? (
+            <p className="text-sm text-forest/80">Nothing published yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {published.map((p) => (
+                <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
