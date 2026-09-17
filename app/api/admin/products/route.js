@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getAllProductsAdmin, upsertProduct } from '@/lib/catalog';
+import { getAllProductsAdmin, upsertProduct, publishRank } from '@/lib/catalog';
 
 export async function GET() {
   const products = await getAllProductsAdmin();
-  // Newest first is more useful in the dashboard than storefront order.
-  products.sort((a, b) => b.createdAt - a.createdAt);
+  // Most-recently published on top (drafts fall back to when they were
+  // created, since they have no publishedAt yet).
+  products.sort((a, b) => publishRank(b) - publishRank(a));
   return NextResponse.json({ products });
 }
 
