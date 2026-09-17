@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { getProduct } from '@/lib/catalog';
 import { getExchangeRates } from '@/lib/exchange-rates-server';
 import { formatMoney, SUPPORTED_CURRENCIES } from '@/lib/currency-shared';
+import { getSizeStock, getSizesForCategory } from '@/data/products';
 
 const EU_COUNTRIES = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'IE', 'PT', 'AT', 'SE', 'DK', 'FI'];
 
@@ -79,6 +80,19 @@ export async function POST(request) {
         const product = await getProduct(item.handle);
         if (!product) {
           throw new Error(`"${item.title || item.handle}" is no longer available — please remove it from your cart.`);
+        }
+        // Re-check ready-made stock for this exact size at the moment of
+        // checkout (not just when it was added to the cart) — someone else
+        // may have bought the last one in between. Custom-stitch and
+        // one-size items aren't stock-limited, so they're skipped here.
+        const stock = getSizeStock(product.availableSizes, getSizesForCategory(product.category));
+        const available = stock[item.size];
+        if (available !== undefined && Number.isFinite(available) && item.qty > available) {
+          throw new Error(
+            available > 0
+              ? `Only ${available} left in size ${item.size} for "${product.title}" — please update the quantity in your cart.`
+              : `Size ${item.size} for "${product.title}" just sold out — please choose a different size or remove it from your cart.`
+          );
         }
         return { item, product };
       })
