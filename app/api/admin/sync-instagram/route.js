@@ -98,6 +98,12 @@ export async function POST() {
         source: 'instagram',
         instagramMediaId: item.id,
         instagramPermalink: item.permalink,
+        // Use the post's own Instagram timestamp, not the moment this loop
+        // happens to reach it — otherwise drafts end up ordered by how long
+        // the sync took to process each one instead of by which post is
+        // actually newest, and the latest post can land at the bottom of
+        // the Unpublished tab instead of the top.
+        createdAt: item.timestamp ? new Date(item.timestamp).getTime() : undefined,
       });
       added.push(record);
     }
