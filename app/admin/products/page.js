@@ -6,6 +6,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { categories, getSizesForCategory, isUnsizedCategory } from '@/data/products';
 
+// Normalizes availableSizes into the { size: quantity } shape this form
+// edits, whatever shape the stored product actually has. A legacy array
+// (from before quantities existed — just a list of sizes marked "ready,
+// unlimited") seeds each of those sizes with a starting quantity of 1
+// rather than 0, so re-saving a product you haven't touched in a while
+// doesn't silently zero out sizes that were previously available — just
+// double-check the real count before saving.
+function normalizeSizeStock(availableSizes) {
+  if (!availableSizes) return {};
+  if (Array.isArray(availableSizes)) {
+    return availableSizes.reduce((acc, s) => ({ ...acc, [s]: 1 }), {});
+  }
+  return { ...availableSizes };
+}
+
 function emptyForm(product) {
   return {
     id: product.id,
@@ -14,10 +29,11 @@ function emptyForm(product) {
     price: product.price ?? '',
     description: product.description || '',
     customStitch: product.customStitch !== false,
-    // Which sizes are actually made for this piece — starts empty so you
-    // choose the 1-2 ready sizes yourself; anything left unchecked shows
-    // greyed out on the site, with Custom left as the fallback.
-    availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
+    // How many ready-made pieces you actually have in each size — e.g.
+    // { M: 2, L: 3 }. Starts empty so you enter real counts yourself;
+    // any size left at 0 (or not listed) shows greyed out on the site,
+    // with Custom left as the fallback.
+    availableSizes: normalizeSizeStock(product.availableSizes),
     soldOut: product.soldOut || false,
     image: product.image,
     status: product.status,
@@ -40,7 +56,7 @@ function blankProduct() {
     price: '',
     description: '',
     customStitch: true,
-    availableSizes: [],
+    availableSizes: {},
     soldOut: false,
     image: null,
     status: 'draft',
@@ -71,8 +87,8 @@ function ProductCard({ product, onSaved, onDeleted }) {
   function set(field, value) {
     if (field === 'category') {
       // Clothing sizes and EU shoe sizes don't overlap — clear whatever was
-      // ticked so a stale size from the old category can't stick around.
-      setForm((f) => ({ ...f, category: value, availableSizes: [] }));
+      // set so a stale size from the old category can't stick around.
+      setForm((f) => ({ ...f, category: value, availableSizes: {} }));
       return;
     }
     if (field === 'instagramPermalink') {
@@ -129,14 +145,9 @@ function ProductCard({ product, onSaved, onDeleted }) {
     }
   }
 
-  function toggleSize(size) {
-    setForm((f) => {
-      const isActive = f.availableSizes.includes(size);
-      const availableSizes = isActive
-        ? f.availableSizes.filter((s) => s !== size)
-        : [...f.availableSizes, size];
-      return { ...f, availableSizes };
-    });
+  function setSizeQty(size, rawValue) {
+    const qty = Math.max(0, parseInt(rawValue, 10) || 0);
+    setForm((f) => ({ ...f, availableSizes: { ...f.availableSizes, [size]: qty } }));
   }
 
   async function handlePhotoChange(e) {
@@ -399,31 +410,34 @@ function ProductCard({ product, onSaved, onDeleted }) {
         {!isUnsized && (
           <div>
             <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
-              Sizes ready to ship
+              Ready-made stock by size
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {sizeOptions.map((s) => {
-                const active = form.availableSizes.includes(s);
+                const qty = form.availableSizes[s] || 0;
                 return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => toggleSize(s)}
-                    aria-pressed={active}
-                    className={`px-3.5 py-1.5 text-xs uppercase tracking-wide rounded-sm border transition-colors ${
-                      active
-                        ? 'bg-forest text-cream border-forest'
-                        : 'bg-cream-dark/50 text-forest/40 border-forest/15 hover:text-forest/70'
-                    }`}
-                  >
-                    {s}
-                  </button>
+                  <div key={s} className="flex flex-col items-center gap-1">
+                    <span className="text-[11px] uppercase tracking-wide text-forest/70">{s}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={qty === 0 ? '' : qty}
+                      onChange={(e) => setSizeQty(s, e.target.value)}
+                      placeholder="0"
+                      className={`w-14 text-center border rounded-sm px-1 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gold ${
+                        qty > 0 ? 'border-forest bg-forest/5' : 'border-forest/20'
+                      }`}
+                    />
+                  </div>
                 );
               })}
             </div>
             <p className="text-[11px] text-forest/60 mt-1.5">
-              Tap a size to mark it ready-made (shown active on the site). Sizes left grey show as
-              unavailable, so shoppers know to order those as a custom stitch instead.
+              Enter how many you actually have ready to ship in each size — e.g. 2 in M, 3 in L.
+              Leave a size at 0 to keep it as custom stitch only. As orders come in for a size,
+              this count goes down on its own, and once it hits 0 that size drops back to custom
+              automatically.
             </p>
           </div>
         )}
