@@ -11,37 +11,30 @@ export const revalidate = 30;
 
 export default async function HomePage() {
   const products = await getAllProducts();
-  // A curated collage of real Royale Designs pieces — brighter and consistent
-  // no matter which product happens to be newest, so the homepage always
-  // opens with a strong, on-brand first impression.
-  const heroImage = '/images/hero-collage_2.jpg';
+  // Curated hero: one dominant lifestyle shot (real bride, real piece) paired
+  // with two smaller styled accents (jewellery + jutti), all from the same
+  // shoot — a deliberate, editorial trio instead of a wide stitched collage.
+  const heroPrimary = '/images/hero-bride-red-lehenga.jpg';
+  const heroAccentTop = '/images/hero-jewellery-set.jpg';
+  const heroAccentBottom = '/images/hero-pink-jutti.jpg';
   // Newest first, so newly published products actually show up here.
   const featured = [...products].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
   return (
     <div>
       {/* Hero */}
-      <section className="relative">
-        <div className="relative h-[70vh] min-h-[420px] w-full bg-cream-dark">
-          {heroImage && (
-            <Image
-              src={heroImage}
-              alt="A showcase of Royale Designs by Preet bridal and ethnic wear pieces"
-              fill
-              priority
-              className="object-cover object-top"
-            />
-          )}
-          <div className="absolute inset-0 bg-forest-dark/40" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <p className="uppercase tracking-[0.3em] text-cream/80 text-xs sm:text-sm mb-4">
+      <section className="bg-cream-dark/60">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Text */}
+          <div className="text-center lg:text-left order-2 lg:order-1">
+            <p className="uppercase tracking-[0.3em] text-forest/70 text-xs sm:text-sm mb-4">
               {siteConfig.tagline}
             </p>
-            <h1 className="font-serif text-4xl sm:text-6xl text-cream max-w-3xl leading-tight">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-forest-dark leading-tight">
               Where Heritage Meets Elegance
             </h1>
-            <p className="text-cream/80 mt-4 max-w-xl text-sm sm:text-base">
-              Bridal wear, lehengas, gharara, sharara, anarkalis & suits — thoughtfully
+            <p className="text-forest/80 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
+              Bridal wear, lehengas, gharara, sharara, anarkalis &amp; suits — thoughtfully
               customised for you, with our home based in Melbourne.
             </p>
             <Link
@@ -50,6 +43,38 @@ export default async function HomePage() {
             >
               Shop the Collection
             </Link>
+          </div>
+
+          {/* Image composition: one dominant shot + two smaller accents */}
+          <div className="relative order-1 lg:order-2 h-[440px] sm:h-[560px] lg:h-[640px]">
+            <div className="absolute inset-y-0 left-0 right-24 sm:right-32 lg:right-40 rounded-sm overflow-hidden shadow-lg">
+              <Image
+                src={heroPrimary}
+                alt="A Royale Designs by Preet bride wearing a hand-embroidered red bridal lehenga"
+                fill
+                priority
+                sizes="(min-width: 1024px) 40vw, 80vw"
+                className="object-cover object-top"
+              />
+            </div>
+            <div className="absolute top-0 right-0 w-20 sm:w-28 lg:w-36 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+              <Image
+                src={heroAccentTop}
+                alt="Gold kundan bridal jewellery set with earrings and maang tikka"
+                fill
+                sizes="(min-width: 1024px) 10vw, 25vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="absolute bottom-0 right-0 w-20 sm:w-28 lg:w-36 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+              <Image
+                src={heroAccentBottom}
+                alt="Hand-embroidered pink bridal juttis with gold thread work"
+                fill
+                sizes="(min-width: 1024px) 10vw, 25vw"
+                className="object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
