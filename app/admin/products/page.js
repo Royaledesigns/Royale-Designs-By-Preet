@@ -509,6 +509,8 @@ export default function AdminProductsPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [fixingOrder, setFixingOrder] = useState(false);
+  const [fixMessage, setFixMessage] = useState('');
   // Which tab is showing — starts on Unpublished since that's usually the
   // "needs action" inbox (new Instagram drafts, pieces you haven't priced
   // yet), with Published as the other tab rather than both lists stacked.
@@ -551,6 +553,31 @@ export default function AdminProductsPage() {
       setSyncMessage(err.message);
     } finally {
       setSyncing(false);
+    }
+  }
+
+  // One-time repair for drafts pulled in by "Check Instagram" before the
+  // ordering fix — re-stamps each one with its real Instagram post date so
+  // the Unpublished tab actually sorts newest-first. Safe to click more
+  // than once; anything already correct is left alone, and nothing about
+  // the product itself (title, price, category, description) changes.
+  async function fixInstagramOrder() {
+    setFixingOrder(true);
+    setFixMessage('');
+    try {
+      const res = await fetch('/api/admin/fix-instagram-order', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not fix the order.');
+      setFixMessage(
+        data.fixed > 0
+          ? `Fixed the order for ${data.fixed} draft${data.fixed === 1 ? '' : 's'}.`
+          : 'Everything was already in the right order.'
+      );
+      await load();
+    } catch (err) {
+      setFixMessage(err.message);
+    } finally {
+      setFixingOrder(false);
     }
   }
 
@@ -627,13 +654,21 @@ export default function AdminProductsPage() {
         >
           {syncing ? 'Checking…' : 'Check Instagram for new posts'}
         </button>
+        <button
+          onClick={fixInstagramOrder}
+          disabled={fixingOrder}
+          className="w-full sm:w-auto border border-forest/30 text-forest-dark/70 px-6 py-3 uppercase text-xs tracking-widest hover:bg-forest/10 disabled:opacity-60"
+        >
+          {fixingOrder ? 'Fixing order…' : 'Fix Instagram draft order'}
+        </button>
       </div>
       <p className="text-[11px] text-forest/60 mb-6">
         Adding a new product? Tap &quot;Upload photo&quot; on the blank card below — on your
         iPhone this opens the option to take a photo or choose one from your library, no need to
         post it to Instagram first.
       </p>
-      {syncMessage && <p className="text-sm text-forest/80 mb-8">{syncMessage}</p>}
+      {syncMessage && <p className="text-sm text-forest/80 mb-2">{syncMessage}</p>}
+      {fixMessage && <p className="text-sm text-forest/80 mb-8">{fixMessage}</p>}
 
       <div className="flex gap-1 border-b border-forest/15 mb-6">
         <button
