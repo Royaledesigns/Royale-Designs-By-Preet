@@ -3,6 +3,7 @@ import siteConfig from '@/components/SiteConfig';
 export const metadata = {
   title: 'FAQ',
   description: `Answers to common questions about ordering, sizing, customisation and delivery from ${siteConfig.name}.`,
+  alternates: { canonical: '/faq' },
 };
 
 const faqs = [

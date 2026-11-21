@@ -9,6 +9,14 @@ import siteConfig from '@/components/SiteConfig';
 
 export const revalidate = 30;
 
+// Title and description are already inherited from the site-wide default in
+// app/layout.js — this just adds the homepage's canonical URL, so search
+// engines treat it as the one true version instead of bare-domain/www
+// variants getting indexed as separate pages.
+export const metadata = {
+  alternates: { canonical: '/' },
+};
+
 export default async function HomePage() {
   const products = await getAllProducts();
   // Curated hero: one dominant lifestyle shot (real bride, real piece) paired

@@ -5,6 +5,7 @@ export const metadata = {
   title: 'Shop All',
   description:
     'Browse the full collection — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
+  alternates: { canonical: '/shop' },
 };
 export const revalidate = 30;
 

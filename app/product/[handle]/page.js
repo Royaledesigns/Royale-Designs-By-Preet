@@ -26,18 +26,43 @@ function truncate(text, max) {
   return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
+// Products pulled in from Instagram carry their original caption as
+// `description` — including the standing "only order through our official
+// account" trust notice. That notice is useful on the page itself, but
+// because it's long and sits right at the start of the caption, it eats the
+// entire ~155-character budget search engines show before any real
+// description of the piece ever appears. This strips that notice (and
+// anything after it) back out for search/share snippets only — the full
+// caption, notice included, still shows on the product page itself.
+function stripOrderingNotice(text) {
+  if (!text) return '';
+  const cut = text.search(/dear\s+customers?\b/i);
+  const trimmed = cut === -1 ? text : text.slice(0, cut);
+  // Drop a dangling emoji/punctuation left right at the cut point.
+  return trimmed.replace(/[^\p{L}\p{N}]+$/u, '').trim();
+}
+
+function buildSeoDescription(product) {
+  const brandLine = `premium South Asian bridal & ethnic wear from ${siteConfig.name}, thoughtfully customised for you.`;
+  const cleaned = stripOrderingNotice(product.description);
+  // A caption that's just the colour/piece name before the notice kicks in
+  // ("Pastel Pink Gharara") is too thin to stand alone as a search snippet —
+  // pair it with the usual brand line instead of showing it bare.
+  const combined = cleaned && cleaned.length < 100 ? `${cleaned} — ${brandLine}` : cleaned;
+  return truncate(combined, 155) || `${product.title} — ${brandLine}`;
+}
+
 export async function generateMetadata({ params }) {
   const { handle } = await params;
   const product = await getProduct(handle);
   if (!product) return { title: 'Product' };
 
-  const description =
-    truncate(product.description, 155) ||
-    `${product.title} — premium South Asian bridal & ethnic wear from ${siteConfig.name}, thoughtfully customised for you.`;
+  const description = buildSeoDescription(product);
 
   return {
     title: product.title,
     description,
+    alternates: { canonical: `/product/${product.handle}` },
     // Overrides the site-wide default share image (see app/layout.js) with
     // this specific product's photo, so sharing a product link on
     // Instagram/WhatsApp/iMessage shows the actual piece, not the homepage
@@ -66,7 +91,7 @@ export default async function ProductPage({ params }) {
     '@type': 'Product',
     name: product.title,
     image: [product.image],
-    description: product.description || undefined,
+    description: buildSeoDescription(product),
     sku: product.handle,
     brand: { '@type': 'Brand', name: siteConfig.name },
     offers: {

@@ -13,6 +13,7 @@ export async function generateMetadata({ params }) {
   return {
     title: category.label,
     description: `Shop ${category.label.toLowerCase()} — premium South Asian bridal & ethnic wear, thoughtfully customised for you and delivered worldwide.`,
+    alternates: { canonical: `/shop/${categorySlug}` },
   };
 }
 

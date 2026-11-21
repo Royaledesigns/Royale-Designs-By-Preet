@@ -7,8 +7,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.royaledesigns.
 // Next.js serves whatever this returns at /sitemap.xml automatically — no
 // separate route file needed. `revalidate` re-runs it periodically so newly
 // added products (including ones pulled in from Instagram) show up here
-// without a redeploy.
-export const revalidate = 3600;
+// without a redeploy. Kept fairly short so an unpublished/renamed product
+// drops out of what's submitted to Google within minutes rather than
+// sitting there as a dead link for up to an hour.
+export const revalidate = 600;
 
 const STATIC_PAGES = [
   { path: '/', priority: 1, changeFrequency: 'weekly' },

@@ -4,6 +4,7 @@ import siteConfig from '@/components/SiteConfig';
 export const metadata = {
   title: 'Contact',
   description: `Get in touch with ${siteConfig.name} — based in ${siteConfig.location}, shipping to Australia, the USA, Canada, the UK, New Zealand and Europe.`,
+  alternates: { canonical: '/contact' },
 };
 
 export default function ContactPage() {

@@ -5,6 +5,7 @@ import MeasurementForm from '@/components/MeasurementForm';
 export const metadata = {
   title: 'Custom Made For You',
   description: `Custom-stitched bridal & ethnic wear from ${siteConfig.name} — share your measurements and we'll tailor your piece to fit.`,
+  alternates: { canonical: '/custom-tailoring' },
 };
 
 // Women's size chart — all measurements in inches. Update here if your
