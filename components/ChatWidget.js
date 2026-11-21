@@ -177,7 +177,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[92vw] max-w-[360px] h-[70vh] max-h-[520px] bg-cream border border-forest/15 rounded-sm shadow-xl flex flex-col overflow-hidden">
           <div className="bg-forest text-cream px-4 py-3 flex items-center justify-between flex-shrink-0">
@@ -248,7 +248,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close chat' : 'Chat with us'}
-        className="w-14 h-14 rounded-full bg-forest text-cream shadow-lg flex items-center justify-center hover:bg-forest-dark transition-colors"
+        className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-forest text-cream shadow-lg flex items-center justify-center hover:bg-forest-dark transition-colors"
       >
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

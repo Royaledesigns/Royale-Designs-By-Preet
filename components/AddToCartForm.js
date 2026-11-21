@@ -1,150 +1,177 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { useCart } from '@/lib/cart-context';
-import { categories } from '@/data/products';
+import { getSizesForCategory, isUnsizedCategory, getSizeStock } from '@/data/products';
+import { formatMoney } from '@/lib/currency-shared';
 import siteConfig from './SiteConfig';
-import CurrencySwitcher from './CurrencySwitcher';
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/shop', label: 'Shop' },
-  { href: '/custom-tailoring', label: 'Custom Made For You' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-];
+const CUSTOM_SIZE = 'Custom (contact us for measurements)';
+const ONE_SIZE = 'One Size';
 
-export default function Header() {
-  const [open, setOpen] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
-  const [mobileShopOpen, setMobileShopOpen] = useState(false);
-  const { count } = useCart();
-  const pathname = usePathname();
+// WhatsApp's wa.me deep link accepts a prefilled "text" query param when
+// addressed by phone number (unlike the wa.me/message/<code> short link
+// used elsewhere, which carries its own fixed template) — so orders built
+// here go straight to the business number with the product, size and price
+// already filled in, ready for the shopper to just hit send.
+function whatsappNumber() {
+  return siteConfig.phone.replace(/[^0-9]/g, '');
+}
+
+function buildWhatsAppLink(message) {
+  return `https://wa.me/${whatsappNumber()}?text=${encodeURIComponent(message)}`;
+}
+
+function buildOrderMessage(product, size, qty, isUnsized) {
+  const sizeLine = isUnsized || size === CUSTOM_SIZE ? '' : ` — Size: ${size}`;
+  const qtyLine = qty > 1 ? ` x${qty}` : '';
+  const total = formatMoney(product.price * qty, 'AUD');
+  const customNote = size === CUSTOM_SIZE ? ' (custom stitched to my measurements)' : '';
+  return `Hi! I'd like to order: ${product.title}${sizeLine}${customNote}${qtyLine} — ${total}. Is it available?`;
+}
+
+export default function AddToCartForm({ product }) {
+  // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti (EU shoe
+  // sizes) and Kids Wear (age-based sizes). Jewellery and Dupattas aren't
+  // sized at all.
+  const isFootwear = product.category === 'heels-punjabi-jutti';
+  const isUnsized = isUnsizedCategory(product.category);
+  const sizeOptions = getSizesForCategory(product.category);
+
+  // { size: quantity } — legacy products (seeded before per-size stock
+  // existed) show every size as available with no count; new ones default
+  // to none until the admin enters the sizes actually ready-made and how
+  // many.
+  const sizeStock = getSizeStock(product.availableSizes, sizeOptions);
+  const availableSizes = Object.keys(sizeStock).filter((s) => (sizeStock[s] || 0) > 0);
+  // Shoes are made in fixed EU sizes only, and unsized categories don't
+  // have a "Custom" fallback option either.
+  const customStitchAvailable = !isFootwear && !isUnsized && product.customStitch !== false;
+  const defaultSize = isUnsized
+    ? ONE_SIZE
+    : availableSizes[0] || (customStitchAvailable ? CUSTOM_SIZE : sizeOptions[0]);
+
+  const [size, setSize] = useState(defaultSize);
+  const [qty, setQty] = useState(1);
+
+  // Custom orders and jewellery/dupattas (one size) aren't stock-limited —
+  // only a specific ready-made size is. Caps the quantity stepper so
+  // nobody can add more than what's actually sitting ready to ship.
+  const maxQty = isUnsized || size === CUSTOM_SIZE ? Infinity : sizeStock[size] ?? Infinity;
+
+  function handleSizeChange(nextSize) {
+    setSize(nextSize);
+    const nextMax = nextSize === CUSTOM_SIZE ? Infinity : sizeStock[nextSize] ?? Infinity;
+    setQty((q) => Math.min(q, Number.isFinite(nextMax) ? Math.max(nextMax, 1) : q));
+  }
+
+  const orderLink = buildWhatsAppLink(buildOrderMessage(product, size, qty, isUnsized));
+
+  if (product.soldOut) {
+    const reachOutLink = buildWhatsAppLink(
+      `Hi! I'm interested in: ${product.title}. Is it still available, or could something similar be made?`
+    );
+    return (
+      <div className="mt-6 space-y-4">
+        <p className="inline-block bg-forest-dark text-cream text-xs uppercase tracking-widest px-3 py-1.5">
+          Sold Out
+        </p>
+        <p className="text-sm text-forest/80">
+          This piece has found its home and is no longer available.
+          {isUnsized
+            ? ' Love the look? Reach out and we may have something similar.'
+            : ' Love the look? We may be able to recreate something similar as a custom stitch.'}
+        </p>
+        <a
+          href={reachOutLink}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block bg-gold text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+        >
+          Reach Out on WhatsApp
+        </a>
+      </div>
+    );
+  }
 
   return (
-    <header className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-forest/10">
-      <div className="bg-forest-dark text-cream/80">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-end gap-3.5 sm:gap-5 text-[11px] uppercase tracking-[0.15em] overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {Object.entries(siteConfig.social).map(([platform, url]) => (
-            <a
-              key={platform}
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-shrink-0 hover:text-gold transition-colors"
-            >
-              <span className="hidden sm:inline">{platform}</span>
-              <span className="sm:hidden">{platform.slice(0, 2)}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex py-3 items-center justify-between gap-4">
-          <Link href="/" className="flex flex-col leading-none">
-            <span className="font-serif text-3xl sm:text-4xl lg:text-[42px] tracking-wide text-forest">
-              {siteConfig.name}
-            </span>
-            <span className="mt-1.5 font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-gold-dark">
-              {siteConfig.motto}
-            </span>
-          </Link>
-
-          <nav className="hidden lg:flex items-center gap-8 font-sans text-sm uppercase tracking-wider text-forest-dark">
-            {navLinks.map((link) =>
-              link.label === 'Shop' ? (
-                <div
-                  key={link.href}
-                  className="relative"
-                  onMouseEnter={() => setShopOpen(true)}
-                  onMouseLeave={() => setShopOpen(false)}
-                >
-                  <Link
-                    href={link.href}
-                    className={`hover:text-gold transition-colors ${pathname.startsWith('/shop') ? 'text-gold-dark' : ''}`}
-                  >
-                    Shop
-                  </Link>
-                  {shopOpen && (
-                    <div className="absolute left-0 top-full w-56 bg-white shadow-lg rounded-b-md border border-forest/10 py-2 normal-case tracking-normal">
-                      {categories.map((c) => (
-                        <Link
-                          key={c.slug}
-                          href={`/shop/${c.slug}`}
-                          className="block px-4 py-2 text-sm text-forest-dark hover:bg-cream-dark hover:text-gold"
-                        >
-                          {c.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`hover:text-gold transition-colors ${pathname === link.href ? 'text-gold-dark' : ''}`}
-                >
-                  {link.label}
-                </Link>
-              )
+    <div className="mt-6 space-y-5">
+      {!isUnsized && (
+        <div>
+          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Size</label>
+          <select
+            value={size}
+            onChange={(e) => handleSizeChange(e.target.value)}
+            className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
+          >
+            {sizeOptions.map((s) => {
+              const stock = sizeStock[s] || 0;
+              const isAvailable = stock > 0;
+              const lowStock = isAvailable && Number.isFinite(stock) && stock <= 3;
+              return (
+                <option key={s} value={s} disabled={!isAvailable}>
+                  {s}
+                  {!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ''}
+                </option>
+              );
+            })}
+            {!isFootwear && (
+              <option value={CUSTOM_SIZE} disabled={!customStitchAvailable}>
+                {CUSTOM_SIZE}
+                {!customStitchAvailable ? ' — unavailable' : ''}
+              </option>
             )}
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <CurrencySwitcher />
-            <Link
-              href="/cart"
-              className="relative inline-flex items-center justify-center rounded-full border border-forest/20 w-10 h-10 hover:bg-forest hover:text-cream transition-colors"
-              aria-label="View cart"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gold text-forest-dark text-[10px] leading-none rounded-full w-5 h-5 flex items-center justify-center">
-                  {count}
-                </span>
-              )}
-            </Link>
-
-            <button
-              className="lg:hidden inline-flex items-center justify-center w-10 h-10"
-              aria-label="Toggle menu"
-              onClick={() => setOpen((o) => !o)}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
-              </svg>
-            </button>
-          </div>
+          </select>
         </div>
+      )}
+
+      <div>
+        <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Quantity</label>
+        <div className="flex items-center border border-forest/20 rounded-sm w-fit">
+          <button
+            type="button"
+            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            className="w-9 h-9 flex items-center justify-center hover:bg-cream-dark"
+            aria-label="Decrease quantity"
+          >
+            −
+          </button>
+          <span className="w-10 text-center">{qty}</span>
+          <button
+            type="button"
+            onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+            disabled={qty >= maxQty}
+            className="w-9 h-9 flex items-center justify-center hover:bg-cream-dark disabled:opacity-40 disabled:hover:bg-transparent"
+            aria-label="Increase quantity"
+          >
+            +
+          </button>
+        </div>
+        {Number.isFinite(maxQty) && (
+          <p className="text-[11px] text-forest/60 mt-1">Only {maxQty} left ready-made in this size.</p>
+        )}
       </div>
 
-      {open && (
-        <div className="lg:hidden border-t border-forest/10 bg-cream px-4 pb-4">
-          <div className="flex flex-col gap-1 pt-2">
-            {navLinks.map((link) =>
-              link.label === 'Shop' ? (
-                <div key={link.href}>
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={link.href}
-                      onClick={() => setOpen(false)}
-                      className="py-2 text-forest-dark uppercase text-sm tracking-wider"
-                    >
-                      {link.label}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setMobileShopOpen((v) => !v)}
-                      aria-label={mobileShopOpen ? 'Hide categories' : 'Show categories'}
-                      aria-expanded={mobileShopOpen}
-                      className="p-2 -mr-2 text-forest-dark"
-                    >
-                      <svg
-                        width="14"
+      <div className="pt-2">
+        <a
+          href={orderLink}
+          target="_blank"
+          rel="noreferrer"
+          className="block w-full text-center bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+        >
+          Order on WhatsApp
+        </a>
+      </div>
+
+      {customStitchAvailable && (
+        <p className="text-xs text-forest/80 pt-1">
+          Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; above, then
+          tap Order on WhatsApp and share your measurements with us there — or visit the{' '}
+          <a href="/custom-tailoring" className="font-semibold text-gold-dark underline hover:text-forest-dark">
+            Custom Made For You
+          </a>{' '}
+          page first.
+        </p>
+      )}
+    </div>
+  );
+}
