@@ -40,15 +40,32 @@ export const metadata = {
   },
 };
 
+// ClothingStore is a schema.org subtype of LocalBusiness — it carries
+// everything Organization did, plus the address/phone/area-served fields
+// that help Google tie this site to the "Royale Designs" Google Business
+// Profile (Tarneit, 4.9★) for Maps and local-pack results. Deliberately
+// suburb-level only (no street address/postcode) to match what's already
+// public on the Contact page — the exact street address lives only on the
+// Google Business Profile itself, which the owner manages separately.
 const organizationJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
+  '@type': 'ClothingStore',
   name: siteConfig.name,
   url: SITE_URL,
   // No dedicated square logo file exists yet (the hero image is a photo
   // collage, not a wordmark/icon) — add a `logo` field here once you have
   // one; Google uses it for brand knowledge panels.
   sameAs: Object.values(siteConfig.social),
+  telephone: siteConfig.phone,
+  email: siteConfig.email,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Tarneit',
+    addressRegion: 'VIC',
+    addressCountry: 'AU',
+  },
+  areaServed: siteConfig.shipsTo,
+  priceRange: '$$',
 };
 
 export default function RootLayout({ children }) {
