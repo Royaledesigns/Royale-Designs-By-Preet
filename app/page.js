@@ -27,9 +27,11 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <section className="bg-cream-dark/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          {/* Text */}
-          <div className="text-center lg:text-left order-2 lg:order-1">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:items-start">
+          {/* Text — aligned to the top of the row (not centered against the
+              much-taller image column) so it sits right under the nav
+              instead of floating in the middle of a tall gap. */}
+          <div className="text-center lg:text-left order-2 lg:order-1 lg:pt-4">
             <p className="uppercase tracking-[0.3em] text-forest/70 text-xs sm:text-sm mb-4">
               {siteConfig.tagline}
             </p>
@@ -50,7 +52,7 @@ export default async function HomePage() {
 
           {/* Image composition: one dominant shot + two smaller accents */}
           <div className="relative order-1 lg:order-2 h-[440px] sm:h-[560px] lg:h-[640px]">
-            <div className="absolute inset-y-0 left-0 right-24 sm:right-32 lg:right-40 rounded-sm overflow-hidden shadow-lg">
+            <div className="absolute inset-y-0 left-0 right-28 sm:right-36 lg:right-44 rounded-sm overflow-hidden shadow-lg">
               <Image
                 src={heroPrimary}
                 alt="A Royale Designs by Preet bride wearing a hand-embroidered red bridal lehenga"
@@ -60,22 +62,29 @@ export default async function HomePage() {
                 className="object-cover object-top"
               />
             </div>
-            <div className="absolute top-0 right-0 w-20 sm:w-28 lg:w-36 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+            {/* Both accent shots are wide flat-lay photos being squeezed into a
+                narrow tall frame, so a plain centered crop cut straight
+                through the jewellery and the juttis. Custom object-position
+                shifts the crop to keep each piece whole instead of slicing
+                it down the middle. */}
+            <div className="absolute top-0 right-0 w-24 sm:w-32 lg:w-40 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
               <Image
                 src={heroAccentTop}
                 alt="Gold kundan bridal jewellery set with earrings and maang tikka"
                 fill
                 sizes="(min-width: 1024px) 10vw, 25vw"
                 className="object-cover"
+                style={{ objectPosition: '68% 42%' }}
               />
             </div>
-            <div className="absolute bottom-0 right-0 w-20 sm:w-28 lg:w-36 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+            <div className="absolute bottom-0 right-0 w-24 sm:w-32 lg:w-40 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
               <Image
                 src={heroAccentBottom}
                 alt="Hand-embroidered pink bridal juttis with gold thread work"
                 fill
                 sizes="(min-width: 1024px) 10vw, 25vw"
                 className="object-cover"
+                style={{ objectPosition: '62% 48%' }}
               />
             </div>
           </div>

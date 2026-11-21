@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
@@ -43,13 +44,15 @@ export default function Header() {
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex py-3 items-center justify-between gap-4">
-          <Link href="/" className="flex flex-col leading-none">
-            <span className="font-serif text-3xl sm:text-4xl lg:text-[42px] tracking-wide text-forest">
-              {siteConfig.name}
-            </span>
-            <span className="mt-1.5 font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-gold-dark">
-              {siteConfig.motto}
-            </span>
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/images/logo.png"
+              alt={`${siteConfig.name} — ${siteConfig.motto}`}
+              width={800}
+              height={800}
+              priority
+              className="h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] object-contain"
+            />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 font-sans text-sm uppercase tracking-wider text-forest-dark">
