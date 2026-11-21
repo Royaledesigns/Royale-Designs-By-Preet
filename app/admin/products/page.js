@@ -511,6 +511,8 @@ export default function AdminProductsPage() {
   const [loadError, setLoadError] = useState('');
   const [fixingOrder, setFixingOrder] = useState(false);
   const [fixMessage, setFixMessage] = useState('');
+  const [clearingDrafts, setClearingDrafts] = useState(false);
+  const [clearMessage, setClearMessage] = useState('');
   // Which tab is showing — starts on Unpublished since that's usually the
   // "needs action" inbox (new Instagram drafts, pieces you haven't priced
   // yet), with Published as the other tab rather than both lists stacked.
@@ -578,6 +580,37 @@ export default function AdminProductsPage() {
       setFixMessage(err.message);
     } finally {
       setFixingOrder(false);
+    }
+  }
+
+  // Wipes the entire Unpublished backlog in one go — for when it's faster
+  // to clear a big pile of old Instagram-sync drafts than to go through
+  // them one at a time. Published products are never touched. A deleted
+  // draft isn't deleted from Instagram itself, so a future "Check
+  // Instagram" sync can pull the same post back in as a fresh draft.
+  async function deleteAllUnpublished() {
+    const count = (products || []).filter((p) => p.status !== 'published').length;
+    if (count === 0) return;
+    if (
+      !confirm(
+        `Delete all ${count} unpublished draft${count === 1 ? '' : 's'}? This can't be undone. ` +
+          `(If any came from Instagram, a future "Check Instagram" sync can bring them back as new drafts.)`
+      )
+    ) {
+      return;
+    }
+    setClearingDrafts(true);
+    setClearMessage('');
+    try {
+      const res = await fetch('/api/admin/products/delete-unpublished', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not clear the unpublished drafts.');
+      setClearMessage(`Deleted ${data.deleted} draft${data.deleted === 1 ? '' : 's'}.`);
+      await load();
+    } catch (err) {
+      setClearMessage(err.message);
+    } finally {
+      setClearingDrafts(false);
     }
   }
 
@@ -700,11 +733,27 @@ export default function AdminProductsPage() {
               No drafts right now. Add one with the button above, or check Instagram for new posts.
             </p>
           ) : (
-            <div className="space-y-4">
-              {drafts.map((p) => (
-                <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
-              ))}
-            </div>
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs text-forest/60">
+                  {drafts.length} draft{drafts.length === 1 ? '' : 's'} waiting
+                </p>
+                <button
+                  type="button"
+                  onClick={deleteAllUnpublished}
+                  disabled={clearingDrafts}
+                  className="text-xs uppercase tracking-widest text-red-700/80 hover:text-red-700 disabled:opacity-60"
+                >
+                  {clearingDrafts ? 'Deleting…' : 'Delete all unpublished'}
+                </button>
+              </div>
+              {clearMessage && <p className="text-sm text-forest/80 mb-4">{clearMessage}</p>}
+              <div className="space-y-4">
+                {drafts.map((p) => (
+                  <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+                ))}
+              </div>
+            </>
           )}
         </section>
       ) : (

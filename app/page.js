@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { categories } from '@/data/products';
-import { getAllProducts, publishRank } from '@/lib/catalog';
+import { getAllProducts, storefrontRank } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 import InstagramFeed from '@/components/InstagramFeed';
 import Testimonials from '@/components/Testimonials';
@@ -17,10 +17,11 @@ export default async function HomePage() {
   const heroPrimary = '/images/hero-bride-red-lehenga.jpg';
   const heroAccentTop = '/images/hero-jewellery-set.jpg';
   const heroAccentBottom = '/images/hero-pink-jutti.jpg';
-  // Most-recently published first, so newly published products actually
-  // show up here (not just newly created ones — a piece drafted weeks ago
-  // but published today should still jump to the front).
-  const featured = [...products].sort((a, b) => publishRank(b) - publishRank(a)).slice(0, 4);
+  // Most-recently uploaded to Instagram first — see storefrontRank in
+  // lib/catalog.js. getAllProducts() already returns products in this
+  // order, so this re-sort is just a defensive guarantee for this row
+  // specifically.
+  const featured = [...products].sort((a, b) => storefrontRank(b) - storefrontRank(a)).slice(0, 4);
 
   return (
     <div>
