@@ -35,9 +35,49 @@ const initialState = {
 export default function MeasurementForm() {
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState('idle');
+  // Reference photo (e.g. a screenshot of an outfit to recreate) is
+  // uploaded as soon as it's picked — by the time someone hits either
+  // submit button, photoUrl is already sitting there ready to include.
+  const [photoName, setPhotoName] = useState('');
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [photoStatus, setPhotoStatus] = useState('idle'); // idle | uploading | done | error
+  const [photoError, setPhotoError] = useState('');
 
   function update(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handlePhotoChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    setPhotoName(file.name);
+    setPhotoPreview(URL.createObjectURL(file));
+    setPhotoUrl('');
+    setPhotoError('');
+    setPhotoStatus('uploading');
+
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch('/api/custom-order-photo', { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+      setPhotoUrl(data.url);
+      setPhotoStatus('done');
+    } catch (err) {
+      setPhotoStatus('error');
+      setPhotoError(err.message || "Couldn't upload that photo — please try again.");
+    }
+  }
+
+  function removePhoto() {
+    setPhotoName('');
+    setPhotoPreview('');
+    setPhotoUrl('');
+    setPhotoStatus('idle');
+    setPhotoError('');
   }
 
   function buildMessage() {
@@ -52,7 +92,10 @@ export default function MeasurementForm() {
       `Height: ${form.height || '—'}`,
       '',
       form.notes ? `Notes: ${form.notes}` : 'Notes: —',
-    ].join('\n');
+      photoUrl ? `Reference Photo: ${photoUrl}` : null,
+    ]
+      .filter((line) => line !== null)
+      .join('\n');
   }
 
   async function handleSubmit(e) {
@@ -70,6 +113,7 @@ export default function MeasurementForm() {
       if (!res.ok) throw new Error();
       setStatus('success');
       setForm(initialState);
+      removePhoto();
     } catch {
       setStatus('error');
     }
@@ -131,7 +175,7 @@ export default function MeasurementForm() {
 
       <div className="mt-4">
         <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
-          Notes (colour, occasion, reference photo link, anything else)
+          Notes (colour, fabric, occasion, anything else)
         </label>
         <textarea
           rows={4}
@@ -139,6 +183,40 @@ export default function MeasurementForm() {
           onChange={(e) => update('notes', e.target.value)}
           className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
         />
+      </div>
+
+      <div className="mt-4">
+        <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">
+          Reference photo (optional) — a screenshot of an outfit you&apos;d like recreated
+        </label>
+        {!photoName ? (
+          <label className="flex items-center justify-center border border-dashed border-forest/30 rounded-sm px-3 py-4 bg-white cursor-pointer hover:border-gold text-sm text-forest/70">
+            <span>Tap to choose a photo</span>
+            <input type="file" accept="image/*,.heic,.heif" onChange={handlePhotoChange} className="hidden" />
+          </label>
+        ) : (
+          <div className="flex items-center gap-3 border border-forest/20 rounded-sm px-3 py-2 bg-white">
+            {photoPreview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photoPreview} alt="Selected reference" className="w-12 h-12 object-cover rounded-sm flex-none" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-forest-dark truncate">{photoName}</p>
+              <p className="text-xs text-forest/60">
+                {photoStatus === 'uploading' && 'Uploading…'}
+                {photoStatus === 'done' && 'Attached'}
+                {photoStatus === 'error' && (photoError || 'Upload failed')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={removePhoto}
+              className="text-xs uppercase tracking-wide text-forest/60 hover:text-red-500 flex-none"
+            >
+              Remove
+            </button>
+          </div>
+        )}
       </div>
 
       {status === 'error' && <p className="text-sm text-red-500 mt-3">Something went wrong — please try again.</p>}
@@ -149,7 +227,7 @@ export default function MeasurementForm() {
       <div className="flex flex-col sm:flex-row gap-3 mt-2">
         <button
           type="submit"
-          disabled={status === 'sending'}
+          disabled={status === 'sending' || photoStatus === 'uploading'}
           className="flex-1 sm:flex-none bg-gold text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:opacity-90 disabled:opacity-60"
         >
           {status === 'sending' ? 'Sending…' : 'Email My Measurements'}
@@ -157,7 +235,8 @@ export default function MeasurementForm() {
         <button
           type="button"
           onClick={handleWhatsApp}
-          className="flex-1 sm:flex-none border border-forest text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors"
+          disabled={photoStatus === 'uploading'}
+          className="flex-1 sm:flex-none border border-forest text-forest-dark px-10 py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors disabled:opacity-60"
         >
           Send via WhatsApp
         </button>

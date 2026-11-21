@@ -64,7 +64,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Royale Designs Website <onboarding@resend.dev>',
+        from: 'Royale Designs Website <noreply@royaledesigns.com.au>',
         to: toEmail,
         reply_to: email,
         subject,
