@@ -1,4 +1,5 @@
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 import { CartProvider } from '@/lib/cart-context';
 import { CurrencyProvider } from '@/lib/currency-context';
 import Header from '@/components/Header';
@@ -92,6 +93,10 @@ export default function RootLayout({ children }) {
             <ChatWidget />
           </CartProvider>
         </CurrencyProvider>
+        {/* Free, built into the Vercel plan already in use — shows visitor
+            counts, page views, referrers and countries under the project's
+            Analytics tab. No separate account/sign-up needed. */}
+        <Analytics />
       </body>
     </html>
   );
