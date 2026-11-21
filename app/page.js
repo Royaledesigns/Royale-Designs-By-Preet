@@ -15,8 +15,11 @@ export default async function HomePage() {
   // with two smaller styled accents (jewellery + jutti), all from the same
   // shoot — a deliberate, editorial trio instead of a wide stitched collage.
   const heroPrimary = '/images/hero-bride-red-lehenga.jpg';
-  const heroAccentTop = '/images/hero-jewellery-set.jpg';
-  const heroAccentBottom = '/images/hero-pink-jutti.jpg';
+  // Generously-margined crops of the full flat-lay shots (earrings + tikka
+  // + necklace; both juttis) — see the accent-panel sizing note below for
+  // why these need wider panels rather than a tighter crop.
+  const heroAccentTop = '/images/hero-jewellery-accent.jpg';
+  const heroAccentBottom = '/images/hero-pink-jutti-accent.jpg';
   // Most-recently uploaded to Instagram first — see storefrontRank in
   // lib/catalog.js. getAllProducts() already returns products in this
   // order, so this re-sort is just a defensive guarantee for this row
@@ -50,9 +53,16 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* Image composition: one dominant shot + two smaller accents */}
+          {/* Image composition: one dominant shot + two smaller accents.
+              The accent thumbnails are noticeably wider than before (w-40/
+              w-52/w-60, up from w-24/w-32/w-40) because a necklace-and-tikka
+              set and a pair of juttis are naturally wide, roughly-square
+              subjects — the old narrow vertical strip could never show one
+              whole without slicing through it. Matching the panel's shape to
+              the subject's shape is what actually fixes that, not another
+              crop tweak. */}
           <div className="relative order-1 lg:order-2 h-[440px] sm:h-[560px] lg:h-[640px]">
-            <div className="absolute inset-y-0 left-0 right-28 sm:right-36 lg:right-44 rounded-sm overflow-hidden shadow-lg">
+            <div className="absolute inset-y-0 left-0 right-44 sm:right-56 lg:right-64 rounded-sm overflow-hidden shadow-lg">
               <Image
                 src={heroPrimary}
                 alt="A Royale Designs by Preet bride wearing a hand-embroidered red bridal lehenga"
@@ -62,29 +72,22 @@ export default async function HomePage() {
                 className="object-cover object-top"
               />
             </div>
-            {/* Both accent shots are wide flat-lay photos being squeezed into a
-                narrow tall frame, so a plain centered crop cut straight
-                through the jewellery and the juttis. Custom object-position
-                shifts the crop to keep each piece whole instead of slicing
-                it down the middle. */}
-            <div className="absolute top-0 right-0 w-24 sm:w-32 lg:w-40 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+            <div className="absolute top-0 right-0 w-40 sm:w-52 lg:w-60 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
               <Image
                 src={heroAccentTop}
-                alt="Gold kundan bridal jewellery set with earrings and maang tikka"
+                alt="Gold kundan bridal necklace and pendant set"
                 fill
-                sizes="(min-width: 1024px) 10vw, 25vw"
+                sizes="(min-width: 1024px) 15vw, 35vw"
                 className="object-cover"
-                style={{ objectPosition: '68% 42%' }}
               />
             </div>
-            <div className="absolute bottom-0 right-0 w-24 sm:w-32 lg:w-40 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
+            <div className="absolute bottom-0 right-0 w-40 sm:w-52 lg:w-60 h-[47%] rounded-sm overflow-hidden shadow-lg ring-4 ring-cream-dark/60">
               <Image
                 src={heroAccentBottom}
                 alt="Hand-embroidered pink bridal juttis with gold thread work"
                 fill
-                sizes="(min-width: 1024px) 10vw, 25vw"
+                sizes="(min-width: 1024px) 15vw, 35vw"
                 className="object-cover"
-                style={{ objectPosition: '62% 48%' }}
               />
             </div>
           </div>
