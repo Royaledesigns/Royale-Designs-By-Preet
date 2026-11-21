@@ -592,14 +592,10 @@ export default function AdminProductsPage() {
   }
 
   function handleSaved(updated, localKey) {
-    // Follow a product across tabs when its status actually changed —
-    // hitting Publish moves it to the Published tab, Unpublish moves it
-    // back — rather than leaving it to seemingly vanish from the tab
-    // you're looking at.
-    const previous = (products || []).find((p) => (localKey ? p._localKey === localKey : p.id === updated.id));
-    if (previous && previous.status !== updated.status) {
-      setActiveTab(updated.status === 'published' ? 'published' : 'unpublished');
-    }
+    // Stay on whatever tab you're already on — publishing a draft just
+    // drops it off the Unpublished list rather than jumping you over to
+    // Published, so you can keep publishing the next one without
+    // switching tabs back and forth.
     setProducts((prev) =>
       prev.map((p) => {
         const matches = localKey ? p._localKey === localKey : p.id === updated.id;
