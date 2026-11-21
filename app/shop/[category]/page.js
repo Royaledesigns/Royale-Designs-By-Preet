@@ -4,7 +4,11 @@ import { categories } from '@/data/products';
 import { getCategory, getProductsByCategory } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
-export const revalidate = 30;
+// 5 minutes, not 30 seconds — every regeneration re-reads the catalog from
+// the database, and the old 30-second interval across every page was
+// enough regeneration traffic on its own to blow through the database's
+// free monthly command quota in a single busy day.
+export const revalidate = 300;
 
 // Melbourne-qualified title/description per category, aimed at local search
 // intent ("lehenga shop melbourne", "punjabi suits online australia", etc) —

@@ -14,8 +14,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.royaledesigns.
 // Products can be added at any time from the admin dashboard (including
 // ones pulled in from Instagram), so this page is rendered on demand rather
 // than pre-built at deploy time — revalidate keeps it cached briefly for
-// speed without needing a redeploy for new products to appear.
-export const revalidate = 30;
+// speed without needing a redeploy for new products to appear. 5 minutes
+// (not 30 seconds) because every regeneration re-reads the catalog from the
+// database — the 30-second interval across every product/category/shop
+// page was enough regeneration traffic on its own to blow through the
+// database's free monthly command quota in a single busy day.
+export const revalidate = 300;
 
 // Search-result snippets get cut off around 155-160 characters, so a
 // meta description longer than that just gets truncated by Google anyway —

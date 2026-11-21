@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
-import { kv, isKvConfigured } from '@/lib/kv';
-import { getAllProductsAdmin } from '@/lib/catalog';
-
-function productKey(id) {
-  return `product:${id}`;
-}
+import { isKvConfigured } from '@/lib/kv';
+import { getAllProductsAdmin, patchProductFields } from '@/lib/catalog';
 
 // One-time repair for drafts pulled in by earlier "Check Instagram" syncs —
 // before the ordering fix, each draft's createdAt was stamped with
@@ -55,12 +51,11 @@ export async function POST() {
       const realCreatedAt = new Date(data.timestamp).getTime();
       if (realCreatedAt === p.createdAt) continue; // already correct, nothing to do
 
-      const existing = await kv.get(productKey(p.id));
-      if (!existing) {
+      const updated = await patchProductFields(p.id, { createdAt: realCreatedAt });
+      if (!updated) {
         skipped.push({ id: p.id, title: p.title, reason: 'Record no longer exists' });
         continue;
       }
-      await kv.set(productKey(p.id), { ...existing, createdAt: realCreatedAt });
       fixed.push({ id: p.id, title: p.title, oldCreatedAt: p.createdAt, newCreatedAt: realCreatedAt });
     } catch (err) {
       skipped.push({ id: p.id, title: p.title, reason: err.message || 'Unknown error' });

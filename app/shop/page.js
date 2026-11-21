@@ -7,7 +7,11 @@ export const metadata = {
     'Browse the full collection from our Melbourne-based boutique — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   alternates: { canonical: '/shop' },
 };
-export const revalidate = 30;
+// 5 minutes, not 30 seconds — every regeneration re-reads the catalog from
+// the database, and the old 30-second interval across every page was
+// enough regeneration traffic on its own to blow through the database's
+// free monthly command quota in a single busy day.
+export const revalidate = 300;
 
 export default async function ShopPage() {
   const products = await getAllProducts();

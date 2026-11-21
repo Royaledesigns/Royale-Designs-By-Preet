@@ -7,7 +7,11 @@ import InstagramFeed from '@/components/InstagramFeed';
 import Testimonials from '@/components/Testimonials';
 import siteConfig from '@/components/SiteConfig';
 
-export const revalidate = 30;
+// 5 minutes, not 30 seconds — every regeneration re-reads the catalog from
+// the database, and the old 30-second interval across every page was
+// enough regeneration traffic on its own to blow through the database's
+// free monthly command quota in a single busy day.
+export const revalidate = 300;
 
 // Title and description are already inherited from the site-wide default in
 // app/layout.js — this just adds the homepage's canonical URL, so search
