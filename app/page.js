@@ -132,7 +132,11 @@ export default async function HomePage() {
       {/* Featured products */}
       <section className="bg-cream-dark/60 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-8">
+          {/* flex-col on mobile, side-by-side from sm up — without this, the
+              heading and "View all" link were forced into one row on every
+              screen size, squeezing the heading into a narrow strip on
+              phones and wrapping it onto multiple lines. */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-8">
             <h2 className="font-serif text-3xl text-forest-dark">New & Noteworthy</h2>
             <Link href="/shop" className="text-sm uppercase tracking-wider text-forest hover:text-gold">
               View all →

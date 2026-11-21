@@ -31,7 +31,12 @@ export default function InstagramFeed() {
   return (
     <section className="bg-cream-dark/60 py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-8">
+        {/* flex-col on mobile, side-by-side from sm up — without this, the
+            heading block and the "Follow" link were forced into one row on
+            every screen size. On a phone-width screen that squeezed the
+            heading into a narrow strip, so "Shop the Feed" wrapped onto
+            three separate lines instead of reading as one line. */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
             <h2 className="font-serif text-3xl text-forest-dark">Shop the Feed</h2>
             <p className="text-sm text-forest/80 mt-1">Straight from Instagram — tap a photo to visit our page.</p>
