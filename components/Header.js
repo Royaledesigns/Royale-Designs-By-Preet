@@ -9,6 +9,35 @@ import { categories } from '@/data/products';
 import siteConfig from './SiteConfig';
 import CurrencySwitcher from './CurrencySwitcher';
 
+// On narrow screens there's no room for "INSTAGRAM TIKTOK FACEBOOK
+// WHATSAPP" — it used to fall back to 2-letter codes ("IN TI FA WH"),
+// which nobody could actually read as platform names. These give the
+// same bar instantly recognisable icons on mobile instead.
+const socialIcons = {
+  instagram: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  tiktok: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16.6 2h-3.2v13.4a3.4 3.4 0 1 1-2.8-3.35v-3.26a6.6 6.6 0 1 0 6 6.57V9.3a8.1 8.1 0 0 0 4.6 1.43V7.5a4.8 4.8 0 0 1-4.6-4.6Z" />
+    </svg>
+  ),
+  facebook: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13.5 22v-8.4h2.8l.4-3.3h-3.2V8.1c0-.95.26-1.6 1.63-1.6h1.74V3.56A23.4 23.4 0 0 0 14.3 3.4c-2.52 0-4.25 1.54-4.25 4.37v2.56H7.25v3.3h2.8V22Z" />
+    </svg>
+  ),
+  whatsapp: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2a10 10 0 0 0-8.58 15.1L2 22l4.98-1.4A10 10 0 1 0 12 2Zm0 1.8a8.2 8.2 0 0 1 6.95 12.5l-.2.32.58 2.57-2.65-.7-.32.19A8.2 8.2 0 1 1 12 3.8Zm-3.28 4.1c-.17 0-.45.06-.69.32-.24.26-.9.87-.9 2.13s.93 2.47 1.06 2.65c.13.17 1.8 2.86 4.44 3.9 2.2.86 2.64.7 3.12.65.48-.04 1.53-.62 1.75-1.22.22-.6.22-1.1.15-1.22-.07-.11-.24-.17-.5-.3-.26-.13-1.53-.75-1.77-.84-.24-.09-.41-.13-.58.13-.17.26-.67.84-.82 1.01-.15.17-.3.19-.56.07-.26-.13-1.08-.4-2.06-1.27-.76-.68-1.27-1.51-1.42-1.77-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.07-.13-.58-1.44-.81-1.97-.2-.48-.41-.47-.58-.48Z" />
+    </svg>
+  ),
+};
+
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/shop', label: 'Shop' },
@@ -34,10 +63,11 @@ export default function Header() {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="flex-shrink-0 hover:text-gold transition-colors"
+              aria-label={platform}
+              className="flex-shrink-0 hover:text-gold transition-colors flex items-center"
             >
               <span className="hidden sm:inline">{platform}</span>
-              <span className="sm:hidden">{platform.slice(0, 2)}</span>
+              <span className="sm:hidden">{socialIcons[platform]}</span>
             </a>
           ))}
         </div>
