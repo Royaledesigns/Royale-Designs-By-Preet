@@ -2,9 +2,9 @@ import { getAllProducts } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
 export const metadata = {
-  title: 'Shop All',
+  title: 'Shop Indian & Pakistani Ethnic Wear Melbourne',
   description:
-    'Browse the full collection — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
+    'Browse the full collection from our Melbourne-based boutique — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   alternates: { canonical: '/shop' },
 };
 export const revalidate = 30;

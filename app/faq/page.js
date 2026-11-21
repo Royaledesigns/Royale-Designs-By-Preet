@@ -12,6 +12,14 @@ const faqs = [
     a: `Every piece is thoughtfully customised for you, with ${siteConfig.name} based in ${siteConfig.location}.`,
   },
   {
+    q: 'Do you have a shop in Melbourne I can visit?',
+    a: `We're based in ${siteConfig.location} and happy to arrange a time for you to see and try pieces in person — message us on WhatsApp or send a note through our Contact page to book a viewing.`,
+  },
+  {
+    q: "What's the difference between a lehenga, gharara and sharara?",
+    a: 'A lehenga is a flared, floor-length skirt paired with a fitted blouse and dupatta — the classic bridal silhouette. A gharara is a pair of wide, flared pants that split at the knee, traditionally worn with a short kurta. A sharara is similar to a gharara but flares from the hip rather than the knee, giving a softer, more flowing drape. All three can be custom stitched to your measurements.',
+  },
+  {
     q: 'Do you ship internationally?',
     a: `We currently deliver to ${siteConfig.shipsTo.join(', ')} — select your country at checkout to see shipping options.`,
   },
@@ -22,6 +30,10 @@ const faqs = [
   {
     q: 'Can I get a piece custom made or altered?',
     a: 'Yes — choose "Custom" as your size on any product page, or visit our Custom Made For You page to start your order.',
+  },
+  {
+    q: 'Do you do custom bridal lehengas for Melbourne weddings?',
+    a: 'Yes — custom stitched bridal lehengas, ghararas and sharara sets are our specialty. Share your measurements, colour and fabric preferences through our Custom Made For You page and we’ll tailor your piece for your wedding date.',
   },
   {
     q: 'How long will my order take?',
@@ -41,9 +53,25 @@ const faqs = [
   },
 ];
 
+// Lets Google show these questions directly in search results (an FAQ rich
+// result) instead of just a plain link. See https://schema.org/FAQPage.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
 export default function FaqPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <h1 className="font-serif text-4xl text-forest-dark mb-10 text-center">Frequently Asked Questions</h1>
       <div className="space-y-8">
         {faqs.map((item) => (

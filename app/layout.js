@@ -24,7 +24,7 @@ export const metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description:
-    'Premium South Asian bridal & ethnic wear, thoughtfully customised for you and delivered to Australia, the USA, Canada, the United Kingdom, New Zealand and Europe.',
+    'Premium South Asian bridal & ethnic wear from our Melbourne-based boutique, thoughtfully customised for you and delivered to Australia, the USA, Canada, the United Kingdom, New Zealand and Europe.',
   // Fallback social-share preview (link unfurls on Instagram, WhatsApp,
   // iMessage, Facebook, etc). Pages like the product page set their own
   // more specific image; everything else — home, about, contact — uses
