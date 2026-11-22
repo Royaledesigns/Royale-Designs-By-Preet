@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getAllProductsAdmin, upsertProduct, publishRank } from '@/lib/catalog';
 
 export async function GET() {
@@ -38,6 +39,12 @@ export async function POST(request) {
       );
     }
     const record = await upsertProduct(body);
+    // Pages are cached for 5 minutes (see app/page.js etc.) to keep database
+    // reads down — without this, a price/title/photo edit here wouldn't show
+    // up on the live site until that cache window happened to expire. This
+    // forces an immediate refresh of just the pages this product can appear
+    // on, right when it's actually saved, instead of waiting on the timer.
+    revalidatePath('/', 'layout');
     return NextResponse.json({ product: record });
   } catch (err) {
     console.error('Product save failed:', err);

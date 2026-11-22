@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getAllProductsAdmin, deleteProduct } from '@/lib/catalog';
 
 // Clears the entire Unpublished (draft) backlog in one go — used by the
@@ -26,6 +27,7 @@ export async function POST() {
       }
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ deleted });
   } catch (err) {
     console.error('Bulk delete of unpublished products failed:', err);

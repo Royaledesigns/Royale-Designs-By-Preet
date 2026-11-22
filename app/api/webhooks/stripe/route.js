@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import Stripe from 'stripe';
 import { appendToSheet } from '@/lib/google-sheet';
 import { decrementSizeStock } from '@/lib/catalog';
@@ -46,12 +47,17 @@ export async function POST(request) {
       });
       const itemsSummary = lineItems.data.map((li) => `${li.quantity}× ${li.description}`).join(', ');
 
+      let stockChanged = false;
       for (const li of lineItems.data) {
         const meta = li.price?.product?.metadata;
         if (meta?.handle && meta?.size) {
           await decrementSizeStock(meta.handle, meta.size, li.quantity || 1);
+          stockChanged = true;
         }
       }
+      // So a size that just sold out stops showing as available right away,
+      // rather than for up to 5 minutes (see app/api/admin/products/route.js).
+      if (stockChanged) revalidatePath('/', 'layout');
 
       const details = session.customer_details || {};
       const addr = details.address || {};
