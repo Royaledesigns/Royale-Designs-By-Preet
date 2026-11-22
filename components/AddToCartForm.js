@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { track } from '@vercel/analytics';
+import { logContactEvent } from '@/lib/track-event';
 import { getSizesForCategory, isUnsizedCategory, getSizeStock } from '@/data/products';
 import { formatMoney } from '@/lib/currency-shared';
 import siteConfig from './SiteConfig';
@@ -86,7 +86,7 @@ export default function AddToCartForm({ product }) {
           href={reachOutLink}
           target="_blank"
           rel="noreferrer"
-          onClick={() => track('WhatsApp Click', { location: 'product_page', product: product.title, context: 'sold_out' })}
+          onClick={() => logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'sold_out' })}
           className="inline-block bg-gold text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
         >
           Reach Out on WhatsApp
@@ -158,7 +158,7 @@ export default function AddToCartForm({ product }) {
           href={orderLink}
           target="_blank"
           rel="noreferrer"
-          onClick={() => track('WhatsApp Click', { location: 'product_page', product: product.title, context: 'order' })}
+          onClick={() => logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'order' })}
           className="block w-full text-center bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
         >
           Order on WhatsApp

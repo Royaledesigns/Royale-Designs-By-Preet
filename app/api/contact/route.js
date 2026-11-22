@@ -35,6 +35,10 @@ export async function POST(request) {
     await appendToSheet({ type: 'Newsletter Signup', name, email });
   } else if (type === 'contact') {
     await appendToSheet({ type: 'Contact Form', name, email, details: message });
+  } else if (type === 'measurements') {
+    // Previously only emailed, never logged — meaning it didn't show up
+    // anywhere alongside your other "someone contacted me" counts.
+    await appendToSheet({ type: 'Measurements Form', name, email, details: message });
   }
 
   const toEmail = process.env.CONTACT_TO_EMAIL || 'prabhpreet.maan@yahoo.com';

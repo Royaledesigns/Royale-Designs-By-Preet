@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { track } from '@vercel/analytics';
+import { logContactEvent } from '@/lib/track-event';
 import { useCart } from '@/lib/cart-context';
 import { categories } from '@/data/products';
 import siteConfig from './SiteConfig';
@@ -66,10 +66,11 @@ export default function Header() {
               rel="noreferrer"
               aria-label={platform}
               // WhatsApp is the one social link that's actually a contact
-              // channel (the rest just open a profile) — logged so you can
-              // see, in Vercel Analytics, how many visitors click through
-              // to message you from the header, versus just browsing.
-              onClick={platform === 'whatsapp' ? () => track('WhatsApp Click', { location: 'header' }) : undefined}
+              // channel (the rest just open a profile) — logged to your
+              // Google Sheet so you can see how many visitors click
+              // through to message you from the header, versus just
+              // browsing.
+              onClick={platform === 'whatsapp' ? () => logContactEvent('WhatsApp Click', { location: 'header' }) : undefined}
               className="flex-shrink-0 hover:text-gold transition-colors flex items-center"
             >
               <span className="hidden sm:inline">{platform}</span>

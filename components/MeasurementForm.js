@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { track } from '@vercel/analytics';
+import { logContactEvent } from '@/lib/track-event';
 import siteConfig from './SiteConfig';
 
 // wa.me wants a bare international number — strip the "+" and any spaces
@@ -112,7 +112,9 @@ export default function MeasurementForm() {
         body: JSON.stringify({ type: 'measurements', name: form.name, email: form.email, message }),
       });
       if (!res.ok) throw new Error();
-      track('Measurement Form Submitted', { method: 'email' });
+      // No client-side logging call needed here — the /api/contact route
+      // itself now writes a "Measurements Form" row to your Google Sheet
+      // for every submission (see app/api/contact/route.js).
       setStatus('success');
       setForm(initialState);
       removePhoto();
@@ -125,7 +127,7 @@ export default function MeasurementForm() {
     const intro = `Hi! I'd like to place a custom order. Here are my measurements:\n`;
     const who = `Name: ${form.name || '—'}\nEmail: ${form.email || '—'}\n\n`;
     const text = intro + who + buildMessage();
-    track('WhatsApp Click', { location: 'custom_tailoring', context: 'measurements' });
+    logContactEvent('WhatsApp Click', { location: 'custom_tailoring', context: 'measurements' });
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank', 'noreferrer');
   }
 
