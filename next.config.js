@@ -1,6 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Vercel's Image Optimization API has a monthly transformation quota on
+    // the free (Hobby) plan — once it's used up, any photo that needs a
+    // size Vercel hasn't already cached fails outright with a 402 error
+    // until the quota resets or the plan is upgraded (this is exactly what
+    // broke the "Royal Blue Embroidered Suit" photo in November 2026).
+    // Turning optimization off means every photo is served exactly as
+    // stored (same JPEGs already re-hosted into Blob storage by the
+    // Instagram sync, already reasonably sized) with zero dependency on
+    // that quota — a product photo can never fail to load for this reason
+    // again. The tradeoff is losing Vercel's automatic resizing/WebP
+    // conversion, so pages are a little heavier than the optimized
+    // versions would have been. Remove this line (and upgrade to Vercel
+    // Pro) if you'd rather keep automatic optimization.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
