@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { track } from '@vercel/analytics';
 import { categories } from '@/data/products';
 import siteConfig from './SiteConfig';
 
@@ -22,6 +23,7 @@ export default function Footer() {
           message: 'New newsletter signup',
         }),
       });
+      if (res.ok) track('Newsletter Signup');
       setStatus(res.ok ? 'success' : 'error');
     } catch {
       setStatus('error');
