@@ -17,6 +17,22 @@ const MAX_POSTS = 300; // how far back to look, across as many pages as it takes
 // 10s so it isn't cut off partway through.
 export const maxDuration = 60;
 
+// Matches the start of the standard ordering notice every caption repeats
+// near-verbatim ("Tarneit Melbourne Australia❤️Dear customers, We accept
+// orders only through our official registered WhatsApp number..."). Title
+// and Description are seeded from whatever text comes before this point,
+// so a caption that's nothing but the notice itself yields an empty
+// string (handled by the caller) rather than the notice landing in either
+// field.
+const ORDERING_NOTICE_MARKER = /tarneit\s*melbourne\s*australia/i;
+
+function stripOrderingBoilerplate(caption) {
+  if (!caption) return '';
+  const match = caption.match(ORDERING_NOTICE_MARKER);
+  const specific = match ? caption.slice(0, match.index) : caption;
+  return specific.trim();
+}
+
 export async function POST() {
   const token = process.env.INSTAGRAM_ACCESS_TOKEN;
 
@@ -70,9 +86,18 @@ export async function POST() {
       const image = item.media_type === 'VIDEO' ? item.thumbnail_url : item.media_url;
       if (!image) continue;
 
-      const captionFirstLine = (item.caption || '').split('\n')[0].trim();
-      const title = captionFirstLine
-        ? captionFirstLine.slice(0, 70)
+      // Nearly every caption opens with the same repeated ordering notice
+      // ("Tarneit Melbourne Australia... Dear customers, We accept orders
+      // only through our official registered WhatsApp number...") — useful
+      // on Instagram itself, but not something worth leaving in the Title
+      // or Description box here, where it just has to be deleted by hand
+      // before every single publish. Cut the caption off at the start of
+      // that notice and keep only whatever specific text (if any) was
+      // written before it.
+      const specificText = stripOrderingBoilerplate(item.caption);
+
+      const title = specificText
+        ? specificText.slice(0, 70)
         : `New piece — ${new Date(item.timestamp).toLocaleDateString('en-AU')}`;
 
       // Copy the photo into permanent storage when available, so it doesn't
@@ -89,7 +114,7 @@ export async function POST() {
 
       const record = await upsertProduct({
         title,
-        description: item.caption || '',
+        description: specificText,
         image: finalImage,
         category: null,
         price: null,
