@@ -517,6 +517,10 @@ export default function AdminProductsPage() {
   // "needs action" inbox (new Instagram drafts, pieces you haven't priced
   // yet), with Published as the other tab rather than both lists stacked.
   const [activeTab, setActiveTab] = useState('unpublished');
+  // Lets a long Instagram-sync backlog (100+ drafts) be narrowed down by
+  // typing instead of scrolled through — matches against title,
+  // description, and category on whichever tab is active.
+  const [search, setSearch] = useState('');
   const router = useRouter();
 
   const load = useCallback(async () => {
@@ -622,6 +626,9 @@ export default function AdminProductsPage() {
   function addNewProduct() {
     setProducts((prev) => [blankProduct(), ...(prev || [])]);
     setActiveTab('unpublished');
+    // Clear any active search — otherwise the new blank card (no title yet)
+    // wouldn't match and would silently fail to appear.
+    setSearch('');
   }
 
   function handleSaved(updated, localKey) {
@@ -649,126 +656,196 @@ export default function AdminProductsPage() {
     return <p className="mx-auto max-w-3xl px-4 py-16 text-forest/80">Loading…</p>;
   }
 
-  const drafts = products.filter((p) => p.status === 'draft');
-  const published = products.filter((p) => p.status === 'published');
+  const allDrafts = products.filter((p) => p.status === 'draft');
+  const allPublished = products.filter((p) => p.status === 'published');
+
+  // A text filter over whichever tab is open — matches title, description,
+  // or category so "153 drafts" becomes "type a few letters" instead of
+  // "scroll past 140 of them to find the one you want."
+  const query = search.trim().toLowerCase();
+  function matches(p) {
+    if (!query) return true;
+    return (
+      (p.title || '').toLowerCase().includes(query) ||
+      (p.description || '').toLowerCase().includes(query) ||
+      (p.category || '').toLowerCase().includes(query)
+    );
+  }
+  const drafts = allDrafts.filter(matches);
+  const published = allPublished.filter(matches);
+  const visibleCount = activeTab === 'unpublished' ? drafts.length : published.length;
+  const totalCount = activeTab === 'unpublished' ? allDrafts.length : allPublished.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="font-serif text-3xl text-forest-dark">Products</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/subscribers" className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
-            Subscribers
-          </Link>
-          <button onClick={signOut} className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
-            Sign out
-          </button>
+    <>
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="font-serif text-3xl text-forest-dark">Products</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/subscribers" className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
+              Subscribers
+            </Link>
+            <button onClick={signOut} className="text-xs uppercase tracking-widest text-forest/80 hover:text-gold">
+              Sign out
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-forest/80 mb-4">
+          {allDrafts.length} draft{allDrafts.length === 1 ? '' : 's'} · {allPublished.length} live on the site
+        </p>
+
+        {/* Sticky so the tabs and search stay reachable while scrolled deep
+            into a long draft list — no more scrolling back to the top just
+            to switch tabs or clear a search. Sits right at the top of the
+            viewport since /admin no longer shares the storefront's own
+            sticky header (see components/SiteChrome.js). */}
+        <div className="sticky top-0 z-20 bg-cream -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 pb-3 border-b border-forest/15">
+          <div className="flex gap-1 mb-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab('unpublished')}
+              aria-current={activeTab === 'unpublished'}
+              className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
+                activeTab === 'unpublished'
+                  ? 'border-forest text-forest-dark'
+                  : 'border-transparent text-forest/50 hover:text-forest-dark'
+              }`}
+            >
+              Unpublished {allDrafts.length > 0 && `(${allDrafts.length})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('published')}
+              aria-current={activeTab === 'published'}
+              className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
+                activeTab === 'published'
+                  ? 'border-forest text-forest-dark'
+                  : 'border-transparent text-forest/50 hover:text-forest-dark'
+              }`}
+            >
+              Published {allPublished.length > 0 && `(${allPublished.length})`}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Search ${activeTab === 'unpublished' ? 'drafts' : 'published products'} by name, category…`}
+              className="w-full border border-forest/20 rounded-sm pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gold"
+            />
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-forest/40"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+            </svg>
+          </div>
+          {query && (
+            <p className="text-[11px] text-forest/60 mt-2">
+              {visibleCount} of {totalCount} match &quot;{search}&quot;
+            </p>
+          )}
+        </div>
+
+        <div className="pt-4">
+          {activeTab === 'unpublished' ? (
+            <section>
+              {allDrafts.length === 0 ? (
+                <p className="text-sm text-forest/80">
+                  No drafts right now. Tap the + button to add one, or check Instagram for new
+                  posts below.
+                </p>
+              ) : drafts.length === 0 ? (
+                <p className="text-sm text-forest/80">No drafts match &quot;{search}&quot;.</p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-xs text-forest/60">
+                      {drafts.length} draft{drafts.length === 1 ? '' : 's'} waiting
+                    </p>
+                    <button
+                      type="button"
+                      onClick={deleteAllUnpublished}
+                      disabled={clearingDrafts}
+                      className="text-xs uppercase tracking-widest text-red-700/80 hover:text-red-700 disabled:opacity-60"
+                    >
+                      {clearingDrafts ? 'Deleting…' : 'Delete all unpublished'}
+                    </button>
+                  </div>
+                  {clearMessage && <p className="text-sm text-forest/80 mb-4">{clearMessage}</p>}
+                  <div className="space-y-4">
+                    {drafts.map((p) => (
+                      <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          ) : (
+            <section>
+              {allPublished.length === 0 ? (
+                <p className="text-sm text-forest/80">Nothing published yet.</p>
+              ) : published.length === 0 ? (
+                <p className="text-sm text-forest/80">No published products match &quot;{search}&quot;.</p>
+              ) : (
+                <div className="space-y-4">
+                  {published.map((p) => (
+                    <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+
+        {/* Instagram sync tools — used occasionally, not every visit, so
+            they sit below the main list rather than competing with Add
+            Product / search / tabs for attention at the top of the page. */}
+        <div className="mt-12 pt-6 border-t border-forest/10">
+          <p className="text-[11px] uppercase tracking-widest text-forest/50 mb-3">Instagram sync</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={checkInstagram}
+              disabled={syncing}
+              className="border border-forest/30 text-forest-dark px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-forest/10 disabled:opacity-60"
+            >
+              {syncing ? 'Checking…' : 'Check Instagram for new posts'}
+            </button>
+            <button
+              onClick={fixInstagramOrder}
+              disabled={fixingOrder}
+              className="border border-forest/20 text-forest-dark/60 px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-forest/10 disabled:opacity-60"
+            >
+              {fixingOrder ? 'Fixing order…' : 'Fix Instagram draft order'}
+            </button>
+          </div>
+          {syncMessage && <p className="text-sm text-forest/80 mt-3">{syncMessage}</p>}
+          {fixMessage && <p className="text-sm text-forest/80 mt-2">{fixMessage}</p>}
         </div>
       </div>
-      <p className="text-sm text-forest/80 mb-6">
-        {drafts.length} draft{drafts.length === 1 ? '' : 's'} · {published.length} live on the site
-      </p>
 
-      <div className="flex flex-wrap gap-2 mb-2">
-        <button
-          onClick={addNewProduct}
-          className="w-full sm:w-auto border border-forest text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream"
-        >
-          + Add New Product
-        </button>
-        <button
-          onClick={checkInstagram}
-          disabled={syncing}
-          className="w-full sm:w-auto bg-forest text-cream px-6 py-3 uppercase text-sm tracking-widest hover:bg-forest-dark disabled:opacity-60"
-        >
-          {syncing ? 'Checking…' : 'Check Instagram for new posts'}
-        </button>
-        <button
-          onClick={fixInstagramOrder}
-          disabled={fixingOrder}
-          className="w-full sm:w-auto border border-forest/30 text-forest-dark/70 px-6 py-3 uppercase text-xs tracking-widest hover:bg-forest/10 disabled:opacity-60"
-        >
-          {fixingOrder ? 'Fixing order…' : 'Fix Instagram draft order'}
-        </button>
-      </div>
-      <p className="text-[11px] text-forest/60 mb-6">
-        Adding a new product? Tap &quot;Upload photo&quot; on the blank card below — on your
-        iPhone this opens the option to take a photo or choose one from your library, no need to
-        post it to Instagram first.
-      </p>
-      {syncMessage && <p className="text-sm text-forest/80 mb-2">{syncMessage}</p>}
-      {fixMessage && <p className="text-sm text-forest/80 mb-8">{fixMessage}</p>}
-
-      <div className="flex gap-1 border-b border-forest/15 mb-6">
-        <button
-          type="button"
-          onClick={() => setActiveTab('unpublished')}
-          aria-current={activeTab === 'unpublished'}
-          className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
-            activeTab === 'unpublished'
-              ? 'border-forest text-forest-dark'
-              : 'border-transparent text-forest/50 hover:text-forest-dark'
-          }`}
-        >
-          Unpublished {drafts.length > 0 && `(${drafts.length})`}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('published')}
-          aria-current={activeTab === 'published'}
-          className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
-            activeTab === 'published'
-              ? 'border-forest text-forest-dark'
-              : 'border-transparent text-forest/50 hover:text-forest-dark'
-          }`}
-        >
-          Published {published.length > 0 && `(${published.length})`}
-        </button>
-      </div>
-
-      {activeTab === 'unpublished' ? (
-        <section>
-          {drafts.length === 0 ? (
-            <p className="text-sm text-forest/80">
-              No drafts right now. Add one with the button above, or check Instagram for new posts.
-            </p>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-xs text-forest/60">
-                  {drafts.length} draft{drafts.length === 1 ? '' : 's'} waiting
-                </p>
-                <button
-                  type="button"
-                  onClick={deleteAllUnpublished}
-                  disabled={clearingDrafts}
-                  className="text-xs uppercase tracking-widest text-red-700/80 hover:text-red-700 disabled:opacity-60"
-                >
-                  {clearingDrafts ? 'Deleting…' : 'Delete all unpublished'}
-                </button>
-              </div>
-              {clearMessage && <p className="text-sm text-forest/80 mb-4">{clearMessage}</p>}
-              <div className="space-y-4">
-                {drafts.map((p) => (
-                  <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
-                ))}
-              </div>
-            </>
-          )}
-        </section>
-      ) : (
-        <section>
-          {published.length === 0 ? (
-            <p className="text-sm text-forest/80">Nothing published yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {published.map((p) => (
-                <ProductCard key={p._localKey || p.id} product={p} onSaved={handleSaved} onDeleted={handleDeleted} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-    </div>
+      {/* Always reachable, no matter how far you've scrolled into a long
+          draft list or which tab you're on — this was the specific
+          complaint ("Add New Product is buried"), so it's now a floating
+          button rather than one more item in a row of buttons at the top. */}
+      <button
+        type="button"
+        onClick={addNewProduct}
+        aria-label="Add new product"
+        className="fixed bottom-6 right-5 sm:right-8 z-30 flex items-center gap-2 bg-gold text-forest-dark rounded-full shadow-lg px-5 py-4 text-xs uppercase tracking-widest hover:opacity-90 active:scale-95 transition-transform"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+        </svg>
+        <span className="hidden sm:inline">Add Product</span>
+      </button>
+    </>
   );
 }

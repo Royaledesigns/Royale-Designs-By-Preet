@@ -2,9 +2,7 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import { CartProvider } from '@/lib/cart-context';
 import { CurrencyProvider } from '@/lib/currency-context';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ChatWidget from '@/components/ChatWidget';
+import SiteChrome from '@/components/SiteChrome';
 import siteConfig from '@/components/SiteConfig';
 
 // Every page's canonical URL, sitemap entries, and Open Graph/Twitter image
@@ -87,10 +85,7 @@ export default function RootLayout({ children }) {
       <body className="font-sans text-forest-dark antialiased">
         <CurrencyProvider>
           <CartProvider>
-            <Header />
-            <main className="min-h-[60vh]">{children}</main>
-            <Footer />
-            <ChatWidget />
+            <SiteChrome>{children}</SiteChrome>
           </CartProvider>
         </CurrencyProvider>
         {/* Free, built into the Vercel plan already in use — shows visitor
