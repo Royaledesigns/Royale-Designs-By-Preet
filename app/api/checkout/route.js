@@ -4,45 +4,10 @@ import { getProduct } from '@/lib/catalog';
 import { getExchangeRates } from '@/lib/exchange-rates-server';
 import { formatMoney, SUPPORTED_CURRENCIES } from '@/lib/currency-shared';
 import { getSizeStock, getSizesForCategory } from '@/data/products';
-
-const EU_COUNTRIES = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'IE', 'PT', 'AT', 'SE', 'DK', 'FI'];
-
-// The cart page asks the shopper to pick a shipping destination before
-// checkout, and we use that to charge the right rate automatically — Stripe
-// Checkout can't recalculate shipping live from the address someone types in
-// at payment time, so this is what gives an "it just knows" experience:
-// only the one matching rate (and matching countries) reaches the Stripe
-// session, instead of showing every rate and hoping the shopper picks the
-// right one themselves.
-const SHIPPING_REGIONS = {
-  AU: {
-    countries: ['AU'],
-    amount: 2000,
-    display_name: 'Standard Shipping — Australia',
-    delivery: { min: 5, max: 7 },
-  },
-  NZ: {
-    countries: ['NZ'],
-    amount: 3000,
-    display_name: 'Standard Shipping — New Zealand',
-    delivery: { min: 5, max: 8 },
-  },
-  INTL: {
-    countries: ['US', 'CA', 'GB', ...EU_COUNTRIES],
-    amount: 6000,
-    display_name: 'International Shipping',
-    delivery: { min: 6, max: 9 },
-  },
-  // Free, no shipping address collected at all — for a local customer
-  // paying online and collecting the order in person. `pickup: true` is
-  // what tells the code below to skip the shipping section of Stripe
-  // Checkout entirely rather than just charging $0 for it.
-  PICKUP: {
-    pickup: true,
-    amount: 0,
-    display_name: 'Local Pickup — Tarneit, VIC',
-  },
-};
+// Shared with the Product structured data on each product page (see
+// lib/shipping.js) so the rates/countries Google sees in search results
+// can never drift out of sync with what's actually charged here.
+import { SHIPPING_REGIONS } from '@/lib/shipping';
 
 export async function POST(request) {
   const secretKey = process.env.STRIPE_SECRET_KEY;

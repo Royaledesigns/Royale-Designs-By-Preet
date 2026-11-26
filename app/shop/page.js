@@ -2,7 +2,11 @@ import { getAllProducts } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 
 export const metadata = {
-  title: 'Shop Indian & Pakistani Ethnic Wear Melbourne',
+  // "Melbourne" keeps the local-search edge (see the category page's
+  // CATEGORY_SEO comment for why); "Worldwide Shipping" is what's missing
+  // for a USA/Canada/UK searcher — without it, the title alone gives them
+  // no reason to think this site ships to them at all.
+  title: 'Shop Indian & Pakistani Ethnic Wear Melbourne | Worldwide Shipping',
   description:
     'Browse the full collection from our Melbourne-based boutique — lehengas, gharara sets, anarkalis and suits, handcrafted to order and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   alternates: { canonical: '/shop' },

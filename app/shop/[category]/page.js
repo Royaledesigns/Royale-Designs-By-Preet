@@ -16,61 +16,67 @@ export const revalidate = 300;
 // but none of them can claim a real Melbourne presence, which is our edge.
 // A category not listed here (a newly added one before this is updated)
 // falls back to the original generic copy below.
+//
+// Every title also ends in "| Worldwide Shipping": the Melbourne part is
+// deliberately kept (it's still the edge against India-wide catalogs for
+// local/Australian search intent), but on its own it reads as a
+// Melbourne-only shop to a USA/Canada/UK searcher — this one phrase is
+// what tells them, right in the title, that they can order too.
 const CATEGORY_SEO = {
   'bridal-wear-outfits': {
-    title: 'Bridal Wear Melbourne',
+    title: 'Bridal Wear Melbourne | Worldwide Shipping',
     description:
       'Indian & Pakistani bridal wear from our Melbourne boutique — lehengas, ghararas and sharara sets for engagements, sangeets and wedding day, custom stitched to your measurements and delivered worldwide.',
   },
   lehengas: {
-    title: 'Lehengas Melbourne',
+    title: 'Lehengas Melbourne | Worldwide Shipping',
     description:
       'Bridal and party lehengas from our Melbourne-based boutique — embellished, embroidered styles custom stitched to your measurements and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'gharara-sets': {
-    title: 'Gharara Suits Melbourne',
+    title: 'Gharara Suits Melbourne | Worldwide Shipping',
     description:
-      'Shop gharara suits online from Royale Designs by Preet in Melbourne — richly embellished sets custom tailored for weddings, sangeets and festive occasions.',
+      'Shop gharara suits online from Royale Designs by Preet in Melbourne — richly embellished sets custom tailored for weddings, sangeets and festive occasions, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'sharara-sets': {
-    title: 'Sharara Suits Melbourne',
+    title: 'Sharara Suits Melbourne | Worldwide Shipping',
     description:
-      'Sharara sets from our Melbourne boutique — flowing, embellished silhouettes custom stitched to your measurements for weddings and festive wear.',
+      'Sharara sets from our Melbourne boutique — flowing, embellished silhouettes custom stitched to your measurements for weddings and festive wear, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   anarkalis: {
-    title: 'Anarkali Suits Melbourne',
+    title: 'Anarkali Suits Melbourne | Worldwide Shipping',
     description:
-      'Shop Anarkali suits online from our Melbourne-based boutique — elegant floor-length silhouettes custom stitched to your measurements for weddings, parties and festive occasions.',
+      'Shop Anarkali suits online from our Melbourne-based boutique — elegant floor-length silhouettes custom stitched to your measurements for weddings, parties and festive occasions, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   suits: {
-    title: 'Punjabi Partywear Suits Melbourne',
+    title: 'Punjabi Partywear Suits Melbourne | Worldwide Shipping',
     description:
       'Punjabi partywear suits online from our Melbourne boutique — custom stitched to your measurements and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'casual-wear-suits': {
-    title: 'Casual Wear Suits Melbourne',
+    title: 'Casual Wear Suits Melbourne | Worldwide Shipping',
     description:
-      'Everyday Indian suits from our Melbourne-based boutique — comfortable, custom-stitched casual wear delivered worldwide.',
+      'Everyday Indian suits from our Melbourne-based boutique — comfortable, custom-stitched casual wear delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'pakistani-mirror-dupattas': {
-    title: 'Pakistani Mirror Dupattas Melbourne',
+    title: 'Pakistani Mirror Dupattas Melbourne | Worldwide Shipping',
     description:
-      'Shop Pakistani mirror-work dupattas online from our Melbourne boutique — statement pieces to complete any outfit.',
+      'Shop Pakistani mirror-work dupattas online from our Melbourne boutique — statement pieces to complete any outfit, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'heels-punjabi-jutti': {
-    title: 'Punjabi Jutti & Heels Melbourne',
+    title: 'Punjabi Jutti & Heels Melbourne | Worldwide Shipping',
     description:
-      'Punjabi jutti and heels online from our Melbourne-based boutique — the finishing touch for any bridal or festive outfit.',
+      'Punjabi jutti and heels online from our Melbourne-based boutique — the finishing touch for any bridal or festive outfit, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   'kids-wear': {
-    title: 'Kids Indian Wear Melbourne',
+    title: 'Kids Indian Wear Melbourne | Worldwide Shipping',
     description:
-      'Kids ethnic wear online from our Melbourne boutique — festive and wedding outfits for the little ones, delivered worldwide.',
+      'Kids ethnic wear online from our Melbourne boutique — festive and wedding outfits for the little ones, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
   jewellery: {
-    title: 'Indian Jewellery Melbourne',
+    title: 'Indian Jewellery Melbourne | Worldwide Shipping',
     description:
-      'Bridal and party jewellery sets online from our Melbourne-based boutique — the finishing touch for any ethnic outfit.',
+      'Bridal and party jewellery sets online from our Melbourne-based boutique — the finishing touch for any ethnic outfit, delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   },
 };
 

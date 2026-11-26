@@ -6,6 +6,7 @@ import Price from '@/components/Price';
 import ProductCard from '@/components/ProductCard';
 import AddToCartForm from '@/components/AddToCartForm';
 import siteConfig from '@/components/SiteConfig';
+import { buildShippingDetails } from '@/lib/shipping';
 
 // Same canonical domain as app/layout.js — used below for the Product
 // structured data's absolute URL.
@@ -104,6 +105,19 @@ export default async function ProductPage({ params }) {
       priceCurrency: 'AUD',
       price: product.price,
       availability: product.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      // Real cost/time to Australia, NZ, and everywhere else we ship
+      // (see lib/shipping.js) — without this, Google has no idea this
+      // product ships outside Australia at all, which works against
+      // showing up for searches from the USA, Canada, and the UK.
+      shippingDetails: buildShippingDetails(),
+      // "All sales are final — we do not offer returns, exchanges, or
+      // refunds" (see app/shipping-returns/page.js) — stated accurately
+      // here rather than left out, which Google would otherwise just
+      // treat as unknown.
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+      },
     },
   };
 
