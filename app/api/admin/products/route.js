@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { getAllProductsAdmin, upsertProduct, publishRank } from '@/lib/catalog';
+import { deleteImage } from '@/lib/blob';
 
 export async function GET() {
   const products = await getAllProductsAdmin();
@@ -38,6 +39,12 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    // Grabbed before the upsert so there's something to compare the new
+    // photo against — upsertProduct itself only ever sees the new value.
+    const previousImage = body.id
+      ? (await getAllProductsAdmin()).find((p) => p.id === body.id)?.image
+      : null;
+
     const record = await upsertProduct(body);
     // Pages are cached for 5 minutes (see app/page.js etc.) to keep database
     // reads down — without this, a price/title/photo edit here wouldn't show
@@ -45,6 +52,19 @@ export async function POST(request) {
     // forces an immediate refresh of just the pages this product can appear
     // on, right when it's actually saved, instead of waiting on the timer.
     revalidatePath('/', 'layout');
+
+    // The photo was swapped for a different one — the old file is no longer
+    // used by anything, so delete it rather than leaving it in Blob storage
+    // forever (previously nothing ever did this, which is the main reason
+    // storage usage crept up over time). Done after the save succeeds, and
+    // never allowed to fail the request itself.
+    if (previousImage && previousImage !== record.image) {
+      // deleteImage never throws (see lib/blob.js) — awaited so the delete
+      // actually runs before this serverless function exits, not left as a
+      // dangling promise.
+      await deleteImage(previousImage);
+    }
+
     return NextResponse.json({ product: record });
   } catch (err) {
     console.error('Product save failed:', err);

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAllProductsAdmin, upsertProduct } from '@/lib/catalog';
-import { isKvConfigured } from '@/lib/kv';
+import { isKvConfigured, kv } from '@/lib/kv';
 import { isBlobConfigured, rehostImage } from '@/lib/blob';
 
 // Pulls your most recent Instagram posts (photos and videos, up to
@@ -26,6 +26,15 @@ export const maxDuration = 60;
 // field.
 const ORDERING_NOTICE_MARKER = /tarneit\s*melbourne\s*australia/i;
 
+// Guards against two overlapping "Check Instagram" clicks (e.g. an impatient
+// double-click, or one click while a previous sync is still running) both
+// re-hosting the same not-yet-saved post's photo into Blob storage — each
+// one would otherwise produce its own duplicate file, since neither can see
+// the other's in-progress work. 90s comfortably outlasts a single sync (see
+// maxDuration above) so the lock can't outlive the run that set it by much.
+const SYNC_LOCK_KEY = 'instagram-sync-lock';
+const SYNC_LOCK_TTL_SECONDS = 90;
+
 function stripOrderingBoilerplate(caption) {
   if (!caption) return '';
   const match = caption.match(ORDERING_NOTICE_MARKER);
@@ -46,6 +55,30 @@ export async function POST() {
     return NextResponse.json(
       { error: 'The product database isn’t connected yet — connect KV in Vercel first.' },
       { status: 500 }
+    );
+  }
+
+  // Claim the lock before doing anything else. set(..., { nx: true }) only
+  // succeeds if the key doesn't already exist, so if another sync is still
+  // running (or just started a moment ago), this bails out immediately
+  // instead of racing it.
+  let lockAcquired = false;
+  try {
+    const claimed = await kv.set(SYNC_LOCK_KEY, String(Date.now()), {
+      nx: true,
+      ex: SYNC_LOCK_TTL_SECONDS,
+    });
+    lockAcquired = claimed === 'OK' || claimed === true;
+  } catch (err) {
+    console.error('Could not check Instagram sync lock:', err);
+  }
+  if (!lockAcquired) {
+    return NextResponse.json(
+      {
+        error:
+          'An Instagram check is already in progress — give it a minute to finish, then try again.',
+      },
+      { status: 409 }
     );
   }
 
@@ -137,5 +170,11 @@ export async function POST() {
   } catch (err) {
     console.error('Instagram sync failed:', err);
     return NextResponse.json({ error: 'Could not sync Instagram posts.' }, { status: 500 });
+  } finally {
+    // Always release, win or lose, so a failed run doesn't block the next
+    // legitimate check for the full 90s TTL.
+    kv.del(SYNC_LOCK_KEY).catch((err) => {
+      console.error('Could not release Instagram sync lock (it will expire on its own):', err);
+    });
   }
 }
