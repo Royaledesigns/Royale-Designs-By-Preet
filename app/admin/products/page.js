@@ -513,6 +513,8 @@ export default function AdminProductsPage() {
   const [fixMessage, setFixMessage] = useState('');
   const [clearingDrafts, setClearingDrafts] = useState(false);
   const [clearMessage, setClearMessage] = useState('');
+  const [settingCutoff, setSettingCutoff] = useState(false);
+  const [cutoffMessage, setCutoffMessage] = useState('');
   // Which tab is showing — starts on Unpublished since that's usually the
   // "needs action" inbox (new Instagram drafts, pieces you haven't priced
   // yet), with Published as the other tab rather than both lists stacked.
@@ -614,6 +616,33 @@ export default function AdminProductsPage() {
       setClearMessage(err.message);
     } finally {
       setClearingDrafts(false);
+    }
+  }
+
+  // For an account with years of Instagram history: stops "Check Instagram"
+  // from ever importing anything posted before right now, so it only ever
+  // brings in genuinely new posts instead of trickling in another batch of
+  // old backlog every time it's clicked. Doesn't touch any existing draft
+  // or published product.
+  async function ignoreInstagramBacklog() {
+    if (
+      !confirm(
+        'Stop importing old Instagram posts? Every post currently on Instagram will be treated as already seen — future "Check Instagram" checks will only pull in posts made from now on. This won’t change anything already in your dashboard.'
+      )
+    ) {
+      return;
+    }
+    setSettingCutoff(true);
+    setCutoffMessage('');
+    try {
+      const res = await fetch('/api/admin/instagram-ignore-backlog', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not save that setting.');
+      setCutoffMessage('Done — future checks will only pull in new posts from now on.');
+    } catch (err) {
+      setCutoffMessage(err.message);
+    } finally {
+      setSettingCutoff(false);
     }
   }
 
@@ -824,9 +853,17 @@ export default function AdminProductsPage() {
             >
               {fixingOrder ? 'Fixing order…' : 'Fix Instagram draft order'}
             </button>
+            <button
+              onClick={ignoreInstagramBacklog}
+              disabled={settingCutoff}
+              className="border border-forest/20 text-forest-dark/60 px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-forest/10 disabled:opacity-60"
+            >
+              {settingCutoff ? 'Saving…' : 'Only sync new posts from now on'}
+            </button>
           </div>
           {syncMessage && <p className="text-sm text-forest/80 mt-3">{syncMessage}</p>}
           {fixMessage && <p className="text-sm text-forest/80 mt-2">{fixMessage}</p>}
+          {cutoffMessage && <p className="text-sm text-forest/80 mt-2">{cutoffMessage}</p>}
         </div>
       </div>
 

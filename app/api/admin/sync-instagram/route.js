@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSeenInstagramIds, upsertProduct } from '@/lib/catalog';
+import { getInstagramSyncCutoff, getSeenInstagramIds, upsertProduct } from '@/lib/catalog';
 import { isKvConfigured, kv } from '@/lib/kv';
 import { isBlobConfigured, rehostImage } from '@/lib/blob';
 
@@ -89,8 +89,15 @@ export async function POST() {
     // Walk Instagram's pages until we've collected MAX_POSTS or run out of
     // pages — a single request only ever returns one page (max ~100 items),
     // so this is what actually lets the sync see further back than that.
+    // When set (via "Only sync new posts from now on"), anything posted on
+    // or before this moment is skipped entirely — otherwise a long-unsynced
+    // account just trickles in another batch of old backlog every time this
+    // runs, MAX_POSTS at a time.
+    const cutoff = await getInstagramSyncCutoff();
+
     const posts = [];
-    while (nextUrl && posts.length < MAX_POSTS) {
+    let hitCutoff = false;
+    while (nextUrl && posts.length < MAX_POSTS && !hitCutoff) {
       const res = await fetch(nextUrl, { cache: 'no-store' });
 
       if (!res.ok) {
@@ -105,8 +112,17 @@ export async function POST() {
       }
 
       const data = await res.json();
-      posts.push(...(data.data || []));
-      nextUrl = data.paging?.next || null;
+      for (const item of data.data || []) {
+        if (cutoff && item.timestamp && new Date(item.timestamp).getTime() <= cutoff) {
+          // Instagram returns posts newest-first, so once we hit one at or
+          // before the cutoff, every post after it on every later page is
+          // also too old — stop paginating rather than fetching further.
+          hitCutoff = true;
+          break;
+        }
+        posts.push(item);
+      }
+      nextUrl = hitCutoff ? null : data.paging?.next || null;
     }
     posts.length = Math.min(posts.length, MAX_POSTS);
 
