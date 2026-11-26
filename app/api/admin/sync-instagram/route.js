@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllProductsAdmin, upsertProduct } from '@/lib/catalog';
+import { getSeenInstagramIds, upsertProduct } from '@/lib/catalog';
 import { isKvConfigured, kv } from '@/lib/kv';
 import { isBlobConfigured, rehostImage } from '@/lib/blob';
 
@@ -110,8 +110,10 @@ export async function POST() {
     }
     posts.length = Math.min(posts.length, MAX_POSTS);
 
-    const existing = await getAllProductsAdmin();
-    const seenIds = new Set(existing.map((p) => p.instagramMediaId).filter(Boolean));
+    // Covers posts already in the catalog AND ones deliberately deleted
+    // before (see lib/catalog.js) — otherwise clearing a draft out just
+    // makes it look "new" again to the very next sync.
+    const seenIds = await getSeenInstagramIds();
 
     const added = [];
     for (const item of posts) {

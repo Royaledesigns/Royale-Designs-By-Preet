@@ -7,11 +7,10 @@ import { getAllProductsAdmin, deleteProduct } from '@/lib/catalog';
 // faster to wipe a big pile of old Instagram-sync drafts than to publish
 // or individually discard each one. Published products are never touched.
 //
-// Worth knowing: deleting a draft that came from Instagram just removes it
-// from the catalog, not from Instagram itself — so a future "Check
-// Instagram for new posts" sync will see that post again (it's no longer
-// in the catalog to be recognised as already-seen) and re-add it as a
-// fresh draft. That's expected, not a bug.
+// deleteProduct() (see lib/catalog.js) records the Instagram media id of
+// anything deleted here that came from Instagram, so a future "Check
+// Instagram for new posts" sync won't pull the same post back in as a
+// fresh draft.
 export async function POST() {
   try {
     const products = await getAllProductsAdmin();

@@ -590,15 +590,14 @@ export default function AdminProductsPage() {
   // Wipes the entire Unpublished backlog in one go — for when it's faster
   // to clear a big pile of old Instagram-sync drafts than to go through
   // them one at a time. Published products are never touched. A deleted
-  // draft isn't deleted from Instagram itself, so a future "Check
-  // Instagram" sync can pull the same post back in as a fresh draft.
+  // Instagram-sourced draft is remembered (see lib/catalog.js) so a future
+  // "Check Instagram" sync won't pull the same post back in.
   async function deleteAllUnpublished() {
     const count = (products || []).filter((p) => p.status !== 'published').length;
     if (count === 0) return;
     if (
       !confirm(
-        `Delete all ${count} unpublished draft${count === 1 ? '' : 's'}? This can't be undone. ` +
-          `(If any came from Instagram, a future "Check Instagram" sync can bring them back as new drafts.)`
+        `Delete all ${count} unpublished draft${count === 1 ? '' : 's'}? This can't be undone, and any that came from Instagram won't come back on a future "Check Instagram" sync.`
       )
     ) {
       return;
