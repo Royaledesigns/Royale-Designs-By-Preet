@@ -99,12 +99,24 @@ export async function POST(request) {
     if (region.pickup) {
       submitMessageParts.push("Local pickup — we'll email you to arrange a time to collect your order from Tarneit, VIC.");
     }
-    const custom_text = submitMessageParts.length
-      ? { submit: { message: submitMessageParts.join(' ') } }
-      : undefined;
+    // Shown as a required checkbox on the Checkout page itself (not just
+    // buried on the Shipping & Returns page) — "all sales are final" only
+    // protects you in a card-network dispute if the buyer can be shown to
+    // have actually agreed to it before paying, and `consent_collection`
+    // below is what makes Stripe require and timestamp that agreement on
+    // the Checkout Session.
+    const custom_text = {
+      terms_of_service_acceptance: {
+        message: `I agree to the [Shipping & Returns policy](${siteUrl}/shipping-returns) — all sales are final; no refunds, returns, or exchanges once an order is placed.`,
+      },
+      ...(submitMessageParts.length && { submit: { message: submitMessageParts.join(' ') } }),
+    };
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      // Requires the checkbox above to be ticked before the customer can
+      // pay — without this, the message would just be decorative text.
+      consent_collection: { terms_of_service: 'required' },
       // Card only. Without this, Stripe can auto-detect a returning "Link"
       // user by email and skip straight to Link's own saved-card screen
       // instead of your checkout's normal card form — jarring for a
@@ -145,7 +157,7 @@ export async function POST(request) {
       customer_creation: 'always',
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
-      ...(custom_text && { custom_text }),
+      custom_text,
     });
 
     return NextResponse.json({ url: session.url });
