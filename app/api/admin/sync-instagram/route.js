@@ -42,6 +42,17 @@ function stripOrderingBoilerplate(caption) {
   return specific.trim();
 }
 
+// A plain slice(0, max) cuts mid-word ("...Golden Embroi", "...Mirror A") —
+// this backs up to the last whole word instead, so an auto-filled title
+// never ends on a fragment. Falls back to the hard cut only for a single
+// word longer than `max` itself (no earlier space to back up to).
+function truncateAtWord(text, max) {
+  if (!text || text.length <= max) return text;
+  const clipped = text.slice(0, max);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return (lastSpace > 0 ? clipped.slice(0, lastSpace) : clipped).trim();
+}
+
 export async function POST() {
   const token = process.env.INSTAGRAM_ACCESS_TOKEN;
 
@@ -148,7 +159,7 @@ export async function POST() {
       const specificText = stripOrderingBoilerplate(item.caption);
 
       const title = specificText
-        ? specificText.slice(0, 70)
+        ? truncateAtWord(specificText, 70)
         : `New piece — ${new Date(item.timestamp).toLocaleDateString('en-AU')}`;
 
       // Copy the photo into permanent storage when available, so it doesn't
