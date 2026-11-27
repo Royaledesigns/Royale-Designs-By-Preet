@@ -37,14 +37,27 @@ export default function AddToCartForm({ product }) {
   const { addItem } = useCart();
   const router = useRouter();
 
+  // A specific standard size with 0 ready-made stock is still a real,
+  // selectable choice whenever this product offers custom stitching — it
+  // just means that size gets made to order instead of shipped
+  // immediately, exactly like picking "Custom" outright, so it's unlimited
+  // the same way rather than capped at the 0 currently in stock. Only a
+  // size with no custom-stitch fallback at all (footwear) stays a true
+  // dead end once it sells out.
+  function stockFor(s) {
+    if (s === CUSTOM_SIZE) return Infinity;
+    const stock = sizeStock[s] || 0;
+    return stock > 0 ? stock : customStitchAvailable ? Infinity : 0;
+  }
+
   // Custom orders and jewellery/dupattas (one size) aren't stock-limited —
   // only a specific ready-made size is. Caps the quantity stepper so
   // nobody can add more than what's actually sitting ready to ship.
-  const maxQty = isUnsized || size === CUSTOM_SIZE ? Infinity : sizeStock[size] ?? Infinity;
+  const maxQty = isUnsized ? Infinity : stockFor(size);
 
   function handleSizeChange(nextSize) {
     setSize(nextSize);
-    const nextMax = nextSize === CUSTOM_SIZE ? Infinity : sizeStock[nextSize] ?? Infinity;
+    const nextMax = stockFor(nextSize);
     setQty((q) => Math.min(q, Number.isFinite(nextMax) ? Math.max(nextMax, 1) : q));
   }
 
@@ -95,10 +108,12 @@ export default function AddToCartForm({ product }) {
               const stock = sizeStock[s] || 0;
               const isAvailable = stock > 0;
               const lowStock = isAvailable && Number.isFinite(stock) && stock <= 3;
-              // Ready-made sizes in forest green, low stock in amber as a
-              // gentle nudge, and out-of-stock sizes muted grey since
-              // they're a disabled, redirect-to-custom option rather than
-              // a real choice.
+              // An out-of-stock size is still a real, clickable choice when
+              // this product offers custom stitching — selecting it just
+              // means it'll be made to order (see stockFor above) — so it's
+              // only greyed out AND disabled when there's truly no way to
+              // get it (footwear, where sizes can't be custom-stitched).
+              const orderable = isAvailable || customStitchAvailable;
               const style = !isAvailable
                 ? { color: '#8a8f86' }
                 : lowStock
@@ -107,7 +122,7 @@ export default function AddToCartForm({ product }) {
               return {
                 value: s,
                 label: `${s}${!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ' — ready to ship'}`,
-                disabled: !isAvailable,
+                disabled: !orderable,
                 style,
               };
             }),
