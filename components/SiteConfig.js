@@ -20,6 +20,13 @@ const siteConfig = {
   },
   // Shown as the handle under the homepage Instagram feed.
   instagramHandle: '@royale_designs_by_preet',
+  // Real rating from the business's Google Business Profile
+  // (https://g.page/r/CUU2rADipqhWEBE/review) — powers the "aggregateRating"
+  // on every Product's structured data so star ratings can show up in
+  // Google search results. This is a snapshot, not live-fetched: update
+  // these two numbers by hand every so often as new reviews come in
+  // (checked 27 Nov 2026 — 4.9 stars, 39 reviews).
+  googleRating: { value: 4.9, count: 39 },
 };
 
 export default siteConfig;

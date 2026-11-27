@@ -117,6 +117,17 @@ export default async function ProductPage({ params }) {
     description: buildSeoDescription(product),
     sku: buildSku(product.handle),
     brand: { '@type': 'Brand', name: siteConfig.name },
+    // The business's real Google rating (see components/SiteConfig.js) —
+    // this is one rating for the whole brand, not a per-product figure
+    // (there's no real per-product review data), but Google explicitly
+    // allows and expects a brand-level aggregateRating to be repeated
+    // across every Product on the site this way.
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: siteConfig.googleRating.value,
+      reviewCount: siteConfig.googleRating.count,
+      bestRating: 5,
+    },
     offers: {
       '@type': 'Offer',
       url: `${SITE_URL}/product/${product.handle}`,
