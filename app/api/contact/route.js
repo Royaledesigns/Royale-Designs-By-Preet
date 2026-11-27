@@ -18,7 +18,7 @@ import { appendToSheet } from '@/lib/google-sheet';
 // too, from app/api/webhooks/stripe/route.js.
 export async function POST(request) {
   const body = await request.json();
-  const { type = 'contact', name = '', email, message } = body;
+  const { type = 'contact', name = '', email, message, phone = '', address = '', channel = '' } = body;
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required.' }, { status: 400 });
@@ -35,6 +35,14 @@ export async function POST(request) {
     await appendToSheet({ type: 'Newsletter Signup', name, email });
   } else if (type === 'contact') {
     await appendToSheet({ type: 'Contact Form', name, email, details: message });
+  } else if (type === 'measurements') {
+    // This is a real custom order taking shape (measurements + delivery
+    // address), not just a page view — log it as an order row with phone
+    // and address filled in, under whichever Type the customer picked
+    // (WhatsApp Order / Instagram / Walk-in / Other) so it sits in the
+    // Orders sheet alongside everything else, ready for you to add
+    // pricing and payment status once that's agreed.
+    await appendToSheet({ type: channel || 'Measurements Form', name, email, phone, address, details: message });
   }
 
   const toEmail = process.env.CONTACT_TO_EMAIL || 'prabhpreet.maan@yahoo.com';
@@ -64,7 +72,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Royale Designs Website <onboarding@resend.dev>',
+        from: 'Royale Designs Website <noreply@royaledesigns.com.au>',
         to: toEmail,
         reply_to: email,
         subject,
