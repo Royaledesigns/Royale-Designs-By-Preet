@@ -6,7 +6,8 @@ import Price from '@/components/Price';
 import ProductCard from '@/components/ProductCard';
 import AddToCartForm from '@/components/AddToCartForm';
 import siteConfig from '@/components/SiteConfig';
-import { buildShippingDetails } from '@/lib/shipping';
+import { buildShippingDetails, shippingCountries } from '@/lib/shipping';
+import { createHash } from 'crypto';
 
 // Same canonical domain as app/layout.js — used below for the Product
 // structured data's absolute URL.
@@ -45,6 +46,23 @@ function stripOrderingNotice(text) {
   const trimmed = cut === -1 ? text : text.slice(0, cut);
   // Drop a dangling emoji/punctuation left right at the cut point.
   return trimmed.replace(/[^\p{L}\p{N}]+$/u, '').trim();
+}
+
+// Google Merchant Center's `id`/`sku` field (schema.org Product.sku) is
+// capped at 50 characters — see
+// https://support.google.com/merchants/answer/6324405 — but a handle can
+// run up to ~82 (slugify() in lib/catalog.js caps the title slug at 80,
+// plus a "-2"/"-3" suffix for rare title collisions), which is what was
+// tripping Search Console's "Invalid string length in field 'sku'" warning.
+// Most handles are well under 50 and pass through unchanged; a long one is
+// cut down to fit with a short hash of the FULL handle appended, so two
+// different long handles that happen to share their first ~40 characters
+// still end up with different (and always the same, build to build) skus
+// instead of silently colliding once truncated.
+function buildSku(handle) {
+  if (handle.length <= 50) return handle;
+  const hash = createHash('md5').update(handle).digest('hex').slice(0, 8);
+  return `${handle.slice(0, 50 - hash.length - 1)}-${hash}`;
 }
 
 function buildSeoDescription(product) {
@@ -97,7 +115,7 @@ export default async function ProductPage({ params }) {
     name: product.title,
     image: [product.image],
     description: buildSeoDescription(product),
-    sku: product.handle,
+    sku: buildSku(product.handle),
     brand: { '@type': 'Brand', name: siteConfig.name },
     offers: {
       '@type': 'Offer',
@@ -117,6 +135,10 @@ export default async function ProductPage({ params }) {
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
         returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+        // Which countries this no-returns policy applies to — the same
+        // list we actually ship to (see shippingDetails above), so Google
+        // isn't left guessing whether it covers international orders too.
+        applicableCountry: shippingCountries(),
       },
     },
   };
