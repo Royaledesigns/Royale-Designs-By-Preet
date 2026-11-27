@@ -1,34 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { logContactEvent } from '@/lib/track-event';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/lib/cart-context';
 import { getSizesForCategory, isUnsizedCategory, getSizeStock } from '@/data/products';
-import { formatMoney } from '@/lib/currency-shared';
 import siteConfig from './SiteConfig';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 const ONE_SIZE = 'One Size';
-
-// WhatsApp's wa.me deep link accepts a prefilled "text" query param when
-// addressed by phone number (unlike the wa.me/message/<code> short link
-// used elsewhere, which carries its own fixed template) — so orders built
-// here go straight to the business number with the product, size and price
-// already filled in, ready for the shopper to just hit send.
-function whatsappNumber() {
-  return siteConfig.phone.replace(/[^0-9]/g, '');
-}
-
-function buildWhatsAppLink(message) {
-  return `https://wa.me/${whatsappNumber()}?text=${encodeURIComponent(message)}`;
-}
-
-function buildOrderMessage(product, size, qty, isUnsized) {
-  const sizeLine = isUnsized || size === CUSTOM_SIZE ? '' : ` — Size: ${size}`;
-  const qtyLine = qty > 1 ? ` x${qty}` : '';
-  const total = formatMoney(product.price * qty, 'AUD');
-  const customNote = size === CUSTOM_SIZE ? ' (custom stitched to my measurements)' : '';
-  return `Hi! I'd like to order: ${product.title}${sizeLine}${customNote}${qtyLine} — ${total}. Is it available?`;
-}
 
 export default function AddToCartForm({ product }) {
   // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti (EU shoe
@@ -53,6 +32,9 @@ export default function AddToCartForm({ product }) {
 
   const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
+  const router = useRouter();
 
   // Custom orders and jewellery/dupattas (one size) aren't stock-limited —
   // only a specific ready-made size is. Caps the quantity stepper so
@@ -65,12 +47,18 @@ export default function AddToCartForm({ product }) {
     setQty((q) => Math.min(q, Number.isFinite(nextMax) ? Math.max(nextMax, 1) : q));
   }
 
-  const orderLink = buildWhatsAppLink(buildOrderMessage(product, size, qty, isUnsized));
+  const handleAdd = () => {
+    addItem(product, size, qty);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    addItem(product, size, qty);
+    router.push('/cart');
+  };
 
   if (product.soldOut) {
-    const reachOutLink = buildWhatsAppLink(
-      `Hi! I'm interested in: ${product.title}. Is it still available, or could something similar be made?`
-    );
     return (
       <div className="mt-6 space-y-4">
         <p className="inline-block bg-forest-dark text-cream text-xs uppercase tracking-widest px-3 py-1.5">
@@ -83,10 +71,9 @@ export default function AddToCartForm({ product }) {
             : ' Love the look? We may be able to recreate something similar as a custom stitch.'}
         </p>
         <a
-          href={reachOutLink}
+          href={siteConfig.social.whatsapp}
           target="_blank"
           rel="noreferrer"
-          onClick={() => logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'sold_out' })}
           className="inline-block bg-gold text-forest-dark px-6 py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
         >
           Reach Out on WhatsApp
@@ -153,22 +140,25 @@ export default function AddToCartForm({ product }) {
         )}
       </div>
 
-      <div className="pt-2">
-        <a
-          href={orderLink}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'order' })}
-          className="block w-full text-center bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <button
+          onClick={handleAdd}
+          className="flex-1 border border-forest text-forest-dark py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors"
         >
-          Order on WhatsApp
-        </a>
+          {added ? 'Added ✓' : 'Add to Cart'}
+        </button>
+        <button
+          onClick={handleBuyNow}
+          className="flex-1 bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+        >
+          Buy Now
+        </button>
       </div>
 
       {customStitchAvailable && (
         <p className="text-xs text-forest/80 pt-1">
-          Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; above, then
-          tap Order on WhatsApp and share your measurements with us there — or visit the{' '}
+          Need a size outside our standard range, or a colour tweak? Choose &ldquo;Custom&rdquo; and
+          tell us your measurements at checkout, or reach out on the{' '}
           <a href="/custom-tailoring" className="font-semibold text-gold-dark underline hover:text-forest-dark">
             Custom Made For You
           </a>{' '}
