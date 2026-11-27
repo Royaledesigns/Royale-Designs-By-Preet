@@ -165,6 +165,19 @@ export default function RootLayout({ children }) {
             counts, page views, referrers and countries under the project's
             Analytics tab. No separate account/sign-up needed. */}
         <Analytics />
+        {/* Cloudflare Web Analytics — free, unlimited (no monthly event cap,
+            unlike Vercel Analytics' Hobby-plan quota). Added as a plain
+            manual snippet rather than turning on Cloudflare's proxy for the
+            domain (DNS stays "DNS only"/grey-cloud — see lib/blob.js's file
+            header for why that's deliberate), so this has zero effect on
+            how the site is served or crawled; it's just a deferred
+            client-side beacon, same as Vercel's <Analytics /> above. Site
+            registered under Cloudflare dashboard -> Web Analytics. */}
+        <script
+          type="module"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "71539d60f19e4aa4a297896146d18818"}'
+        />
       </body>
     </html>
   );
