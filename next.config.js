@@ -20,9 +20,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn.shopify.com',
       },
-      // Vercel Blob storage — where Instagram-sourced product photos get
-      // permanently re-hosted (see lib/blob.js) once BLOB_READ_WRITE_TOKEN
-      // is set.
+      // Cloudflare R2 — where product photos are permanently re-hosted now
+      // (see lib/blob.js's file header for the Nov 2026 move off Vercel
+      // Blob). This is the current primary image domain; every migrated
+      // product's `image` now points here.
+      {
+        protocol: 'https',
+        hostname: 'images.royaledesigns.com.au',
+      },
+      // Vercel Blob storage — the old home for re-hosted photos, kept here
+      // only so next/image doesn't error on any URL that's somehow still
+      // pointing there (nothing in the live catalog should be, post
+      // migration). Safe to remove once you're confident nothing's left.
       {
         protocol: 'https',
         hostname: '*.public.blob.vercel-storage.com',
