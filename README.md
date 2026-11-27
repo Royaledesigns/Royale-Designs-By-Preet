@@ -89,6 +89,41 @@ silently.
 Orders are priced server-side from `data/products.js`, so the amount
 charged always matches your catalog even if someone tampers with the page.
 
+## Google Sheet customer sync
+
+Every order and enquiry — Instagram/WhatsApp order confirmations, custom
+measurements submissions, and paid website orders — can sync automatically
+to a Google Sheet, so you have everything in one place without checking
+Stripe, Instagram and your inbox separately.
+
+1. **Apps Script Web App (receives the data):** this project's Google
+   Sheet already has a bound Apps Script doing this (Extensions → Apps
+   Script from the Sheet itself). If you ever need to set it up fresh on a
+   new sheet, deploy it via Deploy → New deployment → Web app → Execute
+   as yourself → Who has access: Anyone, then copy the resulting
+   `.../exec` URL.
+2. Add that URL to your environment:
+   ```
+   GOOGLE_SHEET_WEBHOOK_URL=https://script.google.com/macros/s/.../exec
+   ```
+3. **Stripe → Sheet sync for paid website orders:** in your Stripe
+   Dashboard, go to **Developers → Webhooks → Add destination**, set the
+   URL to `https://www.royaledesigns.com.au/api/webhooks/stripe`, and
+   select the **checkout.session.completed** event. Stripe shows you a
+   signing secret (`whsec_...`) once — add it to your environment:
+   ```
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+   Without this, website payments still go through correctly, but you'll
+   need to copy completed orders into the sheet by hand from Stripe's
+   dashboard instead of them appearing automatically.
+4. Redeploy after adding either variable for it to take effect.
+
+Whenever the Apps Script's own code changes, remember: **Deploy → Manage
+deployments → pencil icon → Version: New version → Deploy.** Saving the
+script alone does not update the live web app — only a new deployment
+version does.
+
 ## Setting up the contact form / newsletter emails (optional)
 
 Without any extra setup, contact form and newsletter submissions are just
