@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { getSizesForCategory, isUnsizedCategory, getSizeStock } from '@/data/products';
 import siteConfig from './SiteConfig';
+import SizeSelect from './SizeSelect';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 const ONE_SIZE = 'One Size';
@@ -85,47 +86,45 @@ export default function AddToCartForm({ product }) {
   return (
     <div className="mt-6 space-y-5">
       {!isUnsized && (
-        <div>
-          <label className="block text-xs uppercase tracking-wide text-forest/80 mb-1.5">Size</label>
-          <select
-            value={size}
-            onChange={(e) => handleSizeChange(e.target.value)}
-            className="w-full border border-forest/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-gold"
-          >
-            {sizeOptions.map((s) => {
+        <SizeSelect
+          label="Size"
+          value={size}
+          onChange={handleSizeChange}
+          options={[
+            ...sizeOptions.map((s) => {
               const stock = sizeStock[s] || 0;
               const isAvailable = stock > 0;
               const lowStock = isAvailable && Number.isFinite(stock) && stock <= 3;
-              // Colour (where the browser supports styling <option>, which
-              // most desktop browsers do) plus wording that still reads
-              // clearly on browsers that ignore it: ready-made sizes in
-              // forest green, low stock in amber as a gentle nudge, and
-              // out-of-stock sizes muted grey since they're a disabled,
-              // redirect-to-custom option rather than a real choice.
-              const optionStyle = !isAvailable
+              // Ready-made sizes in forest green, low stock in amber as a
+              // gentle nudge, and out-of-stock sizes muted grey since
+              // they're a disabled, redirect-to-custom option rather than
+              // a real choice.
+              const style = !isAvailable
                 ? { color: '#8a8f86' }
                 : lowStock
                 ? { color: '#875e1d', fontWeight: 600 }
                 : { color: '#21593e', fontWeight: 600 };
-              return (
-                <option key={s} value={s} disabled={!isAvailable} style={optionStyle}>
-                  {s}
-                  {!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ' — ready to ship'}
-                </option>
-              );
-            })}
-            {!isFootwear && (
-              <option
-                value={CUSTOM_SIZE}
-                disabled={!customStitchAvailable}
-                style={customStitchAvailable ? { color: '#875e1d', fontStyle: 'italic' } : { color: '#8a8f86' }}
-              >
-                {CUSTOM_SIZE}
-                {!customStitchAvailable ? ' — unavailable' : ' — made to order'}
-              </option>
-            )}
-          </select>
-        </div>
+              return {
+                value: s,
+                label: `${s}${!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ' — ready to ship'}`,
+                disabled: !isAvailable,
+                style,
+              };
+            }),
+            ...(!isFootwear
+              ? [
+                  {
+                    value: CUSTOM_SIZE,
+                    label: `${CUSTOM_SIZE}${!customStitchAvailable ? ' — unavailable' : ' — made to order'}`,
+                    disabled: !customStitchAvailable,
+                    style: customStitchAvailable
+                      ? { color: '#875e1d', fontStyle: 'italic' }
+                      : { color: '#8a8f86' },
+                  },
+                ]
+              : []),
+          ]}
+        />
       )}
 
       <div>
