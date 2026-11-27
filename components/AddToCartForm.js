@@ -96,17 +96,32 @@ export default function AddToCartForm({ product }) {
               const stock = sizeStock[s] || 0;
               const isAvailable = stock > 0;
               const lowStock = isAvailable && Number.isFinite(stock) && stock <= 3;
+              // Colour (where the browser supports styling <option>, which
+              // most desktop browsers do) plus wording that still reads
+              // clearly on browsers that ignore it: ready-made sizes in
+              // forest green, low stock in amber as a gentle nudge, and
+              // out-of-stock sizes muted grey since they're a disabled,
+              // redirect-to-custom option rather than a real choice.
+              const optionStyle = !isAvailable
+                ? { color: '#8a8f86' }
+                : lowStock
+                ? { color: '#875e1d', fontWeight: 600 }
+                : { color: '#21593e', fontWeight: 600 };
               return (
-                <option key={s} value={s} disabled={!isAvailable}>
+                <option key={s} value={s} disabled={!isAvailable} style={optionStyle}>
                   {s}
-                  {!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ''}
+                  {!isAvailable ? ' — order as custom' : lowStock ? ` — only ${stock} left` : ' — ready to ship'}
                 </option>
               );
             })}
             {!isFootwear && (
-              <option value={CUSTOM_SIZE} disabled={!customStitchAvailable}>
+              <option
+                value={CUSTOM_SIZE}
+                disabled={!customStitchAvailable}
+                style={customStitchAvailable ? { color: '#875e1d', fontStyle: 'italic' } : { color: '#8a8f86' }}
+              >
                 {CUSTOM_SIZE}
-                {!customStitchAvailable ? ' — unavailable' : ''}
+                {!customStitchAvailable ? ' — unavailable' : ' — made to order'}
               </option>
             )}
           </select>
