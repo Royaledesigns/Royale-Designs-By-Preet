@@ -28,8 +28,12 @@ export default async function ShopPage() {
       </p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-        {products.map((p) => (
-          <ProductCard key={p.handle} product={p} />
+        {products.map((p, i) => (
+          // First row (up to 4 cards — covers the full first row on the
+          // lg:grid-cols-4 layout and the first two rows at grid-cols-2 on
+          // mobile) loads eagerly since one of these is this page's LCP
+          // element; see ProductCard.js for why.
+          <ProductCard key={p.handle} product={p} priority={i < 4} />
         ))}
       </div>
     </div>

@@ -131,8 +131,9 @@ export default async function CategoryPage({ params }) {
         <p className="text-forest/80">No pieces in this category yet — check back soon.</p>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {items.map((p) => (
-            <ProductCard key={p.handle} product={p} />
+          {items.map((p, i) => (
+            // See app/shop/page.js — same LCP fix, same reasoning.
+            <ProductCard key={p.handle} product={p} priority={i < 4} />
           ))}
         </div>
       )}
