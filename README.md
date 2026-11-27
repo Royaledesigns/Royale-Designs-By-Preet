@@ -207,7 +207,7 @@ app/                  Pages (App Router)
   product/[handle]/    Product detail pages
   cart/                Cart page
   checkout/            Stripe success/cancel pages
-  about/, contact/, custom-tailoring/, shipping-returns/, faq/
+  about/, contact/, custom-tailoring/, order-details/, shipping-returns/, faq/
   api/checkout/        Creates the Stripe Checkout session
   api/contact/         Handles the contact form + newsletter signup
 components/           Header, Footer, product card, cart form, etc.

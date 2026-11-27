@@ -12,8 +12,10 @@ export default function robots() {
       userAgent: '*',
       allow: '/',
       // Nothing here has SEO value and none of it should show up in search
-      // results — your dashboard, API routes, and the mid-checkout pages.
-      disallow: ['/admin', '/api', '/cart', '/checkout', '/site-login'],
+      // results — your dashboard, API routes, the mid-checkout pages, and
+      // /order-details (a link you send directly to a customer, not a page
+      // anyone should land on from Google).
+      disallow: ['/admin', '/api', '/cart', '/checkout', '/site-login', '/order-details'],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

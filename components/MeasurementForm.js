@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { logContactEvent } from '@/lib/track-event';
 import siteConfig from './SiteConfig';
+import { CONTACT_CHANNELS } from '@/lib/order-channels';
 
 // wa.me wants a bare international number — strip the "+" and any spaces
 // from the display-formatted phone in SiteConfig.
@@ -18,8 +19,6 @@ const FIELDS = [
   { key: 'lengthBottom', label: 'Length of Bottom (in)', placeholder: 'e.g. 36' },
   { key: 'height', label: 'Your Height (ft & in)', placeholder: "e.g. 5'4\"" },
 ];
-
-const CONTACT_CHANNELS = ['WhatsApp Order', 'Instagram', 'Walk-in', 'Other'];
 
 const initialState = {
   name: '',
