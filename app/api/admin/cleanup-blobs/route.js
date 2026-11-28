@@ -39,7 +39,8 @@ export async function POST() {
 
   try {
     const products = await getAllProductsAdmin();
-    const inUse = new Set(products.map((p) => p.image).filter(Boolean));
+    // Main photos plus any extra gallery photos — deleting the extras as "unused" would break product pages.
+    const inUse = new Set(products.flatMap((p) => [p.image, ...(p.extraImages || [])]).filter(Boolean));
 
     let cursor;
     let totalScanned = 0;

@@ -40,10 +40,10 @@ export async function POST(request) {
       );
     }
     // Grabbed before the upsert so there's something to compare the new
-    // photo against — upsertProduct itself only ever sees the new value.
-    const previousImage = body.id
-      ? (await getAllProductsAdmin()).find((p) => p.id === body.id)?.image
-      : null;
+    // photos against — upsertProduct itself only ever sees the new values.
+    // Covers the main photo and any extras.
+    const previous = body.id ? (await getAllProductsAdmin()).find((p) => p.id === body.id) : null;
+    const previousImages = previous ? [previous.image, ...(previous.extraImages || [])] : [];
 
     const record = await upsertProduct(body);
     // Pages are cached for 5 minutes (see app/page.js etc.) to keep database
@@ -53,16 +53,21 @@ export async function POST(request) {
     // on, right when it's actually saved, instead of waiting on the timer.
     revalidatePath('/', 'layout');
 
-    // The photo was swapped for a different one — the old file is no longer
-    // used by anything, so delete it rather than leaving it in Blob storage
-    // forever (previously nothing ever did this, which is the main reason
-    // storage usage crept up over time). Done after the save succeeds, and
-    // never allowed to fail the request itself.
-    if (previousImage && previousImage !== record.image) {
-      // deleteImage never throws (see lib/blob.js) — awaited so the delete
-      // actually runs before this serverless function exits, not left as a
-      // dangling promise.
-      await deleteImage(previousImage);
+    // A photo was swapped or removed — the old file is no longer used by
+    // anything, so delete it rather than leaving it in storage forever
+    // (previously nothing ever did this, which is the main reason storage
+    // usage crept up over time). Anything still in use on this product
+    // (e.g. an old main photo that was just moved into the extras) is kept.
+    // Done after the save succeeds, and never allowed to fail the request
+    // itself.
+    const stillUsed = new Set([record.image, ...(record.extraImages || [])]);
+    for (const url of previousImages) {
+      if (url && !stillUsed.has(url)) {
+        // deleteImage never throws (see lib/blob.js) — awaited so the
+        // delete actually runs before this serverless function exits, not
+        // left as a dangling promise.
+        await deleteImage(url);
+      }
     }
 
     return NextResponse.json({ product: record });

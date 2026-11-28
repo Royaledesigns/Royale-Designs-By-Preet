@@ -21,6 +21,9 @@ function normalizeSizeStock(availableSizes) {
   return { ...availableSizes };
 }
 
+// Main photo + up to 3 extras shown on the product page.
+const MAX_PHOTOS = 4;
+
 function emptyForm(product) {
   return {
     id: product.id,
@@ -36,6 +39,8 @@ function emptyForm(product) {
     availableSizes: normalizeSizeStock(product.availableSizes),
     soldOut: product.soldOut || false,
     image: product.image,
+    // Up to 3 extra photos (4 in total with the main one) — see MAX_PHOTOS.
+    extraImages: Array.isArray(product.extraImages) ? product.extraImages : [],
     status: product.status,
     source: product.source,
     instagramMediaId: product.instagramMediaId,
@@ -78,6 +83,8 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const [error, setError] = useState('');
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const fileInputRef = useRef(null);
+  const extraInputRef = useRef(null);
+  const [uploadingExtras, setUploadingExtras] = useState(false);
   // Deliberately reads product.status (the live prop), not form.status —
   // that way the Publish/Unpublish buttons update immediately once the
   // parent swaps in the saved record, without disturbing the rest of the
@@ -174,6 +181,59 @@ function ProductCard({ product, onSaved, onDeleted }) {
     }
   }
 
+  // Adds more photos to this one product (back view, details, …). Picks as
+  // many as fit in the remaining slots, uploads them one at a time, and
+  // appends each as soon as it lands. The first photo ever added to an
+  // empty card becomes the main one.
+  async function handleExtraPhotos(e) {
+    const picked = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (picked.length === 0) return;
+    const used = (form.image ? 1 : 0) + form.extraImages.length;
+    const room = MAX_PHOTOS - used;
+    if (room <= 0) {
+      setError(`A product can have up to ${MAX_PHOTOS} photos.`);
+      return;
+    }
+    const files = picked.slice(0, room);
+    setUploadingExtras(true);
+    setError(
+      picked.length > room ? `Only ${room} more photo${room === 1 ? '' : 's'} fit — added the first ${room}.` : ''
+    );
+    try {
+      for (const file of files) {
+        const body = new FormData();
+        body.append('file', file);
+        const res = await fetch('/api/admin/upload', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not upload that photo.');
+        setForm((f) =>
+          f.image
+            ? { ...f, extraImages: [...f.extraImages, data.url] }
+            : { ...f, image: data.url }
+        );
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingExtras(false);
+    }
+  }
+
+  function removeExtra(url) {
+    setForm((f) => ({ ...f, extraImages: f.extraImages.filter((u) => u !== url) }));
+  }
+
+  // Swaps a thumbnail with the main photo — the main one is what shows in
+  // the shop grid, cart and Google, so this is how you pick the best front shot.
+  function makeMain(url) {
+    setForm((f) => ({
+      ...f,
+      image: url,
+      extraImages: f.extraImages.map((u) => (u === url ? f.image : u)),
+    }));
+  }
+
   async function save(nextStatus) {
     if (!form.image) {
       setError('Add a photo first.');
@@ -252,7 +312,8 @@ function ProductCard({ product, onSaved, onDeleted }) {
 
   return (
     <div className="border border-forest/15 rounded-sm bg-white p-4 flex flex-col sm:flex-row gap-4">
-      <div className="relative w-full sm:w-32 aspect-[3/4] sm:aspect-square flex-none rounded-sm overflow-hidden bg-cream-dark">
+      <div className="w-full sm:w-32 flex-none">
+      <div className="relative w-full aspect-[3/4] sm:aspect-square rounded-sm overflow-hidden bg-cream-dark">
         {form.image ? (
           <Image src={form.image} alt={form.title || 'Product photo'} fill className="object-cover" unoptimized />
         ) : (
@@ -278,6 +339,46 @@ function ProductCard({ product, onSaved, onDeleted }) {
             className="hidden"
           />
         </label>
+      </div>
+
+      {/* Extra photos: thumbnails of the 2nd–4th shots, each removable or
+          promotable to main, plus an add tile while there's room. */}
+      <div className="mt-2 grid grid-cols-3 sm:grid-cols-2 gap-2">
+        {form.extraImages.map((url) => (
+          <div key={url} className="relative aspect-square rounded-sm overflow-hidden bg-cream-dark">
+            <Image src={url} alt="Extra product photo" fill className="object-cover" unoptimized />
+            <button
+              type="button"
+              onClick={() => removeExtra(url)}
+              aria-label="Remove this photo"
+              className="absolute top-0.5 right-0.5 w-6 h-6 rounded-full bg-forest-dark/85 text-cream text-xs leading-none"
+            >
+              ✕
+            </button>
+            <button
+              type="button"
+              onClick={() => makeMain(url)}
+              className="absolute inset-x-0 bottom-0 bg-forest-dark/80 text-cream text-[9px] uppercase tracking-wide py-1"
+            >
+              Make main
+            </button>
+          </div>
+        ))}
+        {(form.image ? 1 : 0) + form.extraImages.length < MAX_PHOTOS && (
+          <label className="aspect-square rounded-sm border border-dashed border-forest/30 flex flex-col items-center justify-center text-center text-[10px] uppercase tracking-wide text-forest/70 cursor-pointer hover:bg-cream-dark px-1">
+            {uploadingExtras ? 'Uploading…' : form.image ? '+ More photos' : '+ Photos'}
+            <input
+              ref={extraInputRef}
+              type="file"
+              accept="image/*,.heic,.heif"
+              multiple
+              onChange={handleExtraPhotos}
+              disabled={uploadingExtras || uploading}
+              className="hidden"
+            />
+          </label>
+        )}
+      </div>
       </div>
 
       <div className="flex-1 space-y-3">

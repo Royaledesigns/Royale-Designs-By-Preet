@@ -1,9 +1,9 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getCategory, getProduct, getProductsByCategory } from '@/lib/catalog';
 import Price from '@/components/Price';
 import ProductCard from '@/components/ProductCard';
+import ProductGallery from '@/components/ProductGallery';
 import AddToCartForm from '@/components/AddToCartForm';
 import siteConfig from '@/components/SiteConfig';
 import { buildShippingDetails, shippingCountries } from '@/lib/shipping';
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: product.title,
       description,
-      images: [{ url: product.image, alt: product.title }],
+      images: [product.image, ...(product.extraImages || [])].map((url) => ({ url, alt: product.title })),
     },
   };
 }
@@ -113,7 +113,7 @@ export default async function ProductPage({ params }) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
-    image: [product.image],
+    image: [product.image, ...(product.extraImages || [])],
     description: buildSeoDescription(product),
     sku: buildSku(product.handle),
     brand: { '@type': 'Brand', name: siteConfig.name },
@@ -169,16 +169,7 @@ export default async function ProductPage({ params }) {
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-cream-dark">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            priority
-            sizes="(min-width: 1024px) 45vw, 100vw"
-            className="object-cover"
-          />
-        </div>
+        <ProductGallery images={[product.image, ...(product.extraImages || [])]} title={product.title} />
 
         <div>
           <p className="uppercase text-xs tracking-widest text-gold-dark mb-2">{category?.label}</p>
