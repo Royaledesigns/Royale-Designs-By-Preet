@@ -27,6 +27,13 @@ const siteConfig = {
   // these two numbers by hand every so often as new reviews come in
   // (checked 27 Nov 2026 — 4.9 stars, 39 reviews).
   googleRating: { value: 4.9, count: 39 },
+  // Master switch for paying online (Stripe). While false, product pages
+  // show "Order on WhatsApp" (size + quantity prefilled into the message)
+  // instead of Add to Cart / Buy Now, the cart page offers WhatsApp instead
+  // of Proceed to Checkout, and /api/checkout refuses requests. Flip to
+  // true once Stripe is set up (a real sk_live_ key in STRIPE_SECRET_KEY on
+  // Vercel) and each outfit's available sizes are marked in the admin.
+  onlineCheckout: false,
 };
 
 export default siteConfig;

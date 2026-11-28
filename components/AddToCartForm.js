@@ -4,11 +4,27 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { getSizesForCategory, isUnsizedCategory, getSizeStock } from '@/data/products';
+import { formatMoney } from '@/lib/currency-shared';
+import { logContactEvent } from '@/lib/track-event';
 import siteConfig from './SiteConfig';
 import SizeSelect from './SizeSelect';
 
 const CUSTOM_SIZE = 'Custom (contact us for measurements)';
 const ONE_SIZE = 'One Size';
+
+// Used while online checkout is switched off (siteConfig.onlineCheckout).
+// wa.me addressed by phone number accepts a prefilled "text" (unlike the
+// wa.me/message/<code> short link used elsewhere), so the order message
+// arrives with the product, size and price already filled in.
+function buildOrderLink(product, size, qty, isUnsized) {
+  const number = siteConfig.phone.replace(/[^0-9]/g, '');
+  const sizeLine = isUnsized || size === CUSTOM_SIZE ? '' : ` — Size: ${size}`;
+  const qtyLine = qty > 1 ? ` x${qty}` : '';
+  const total = formatMoney(product.price * qty, 'AUD');
+  const customNote = size === CUSTOM_SIZE ? ' (custom stitched to my measurements)' : '';
+  const message = `Hi! I'd like to order: ${product.title}${sizeLine}${customNote}${qtyLine} — ${total}. Is it available?`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
 
 export default function AddToCartForm({ product }) {
   // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti (EU shoe
@@ -169,20 +185,40 @@ export default function AddToCartForm({ product }) {
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <button
-          onClick={handleAdd}
-          className="flex-1 border border-forest text-forest-dark py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors"
-        >
-          {added ? 'Added ✓' : 'Add to Cart'}
-        </button>
-        <button
-          onClick={handleBuyNow}
-          className="flex-1 bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
-        >
-          Buy Now
-        </button>
-      </div>
+      {siteConfig.onlineCheckout ? (
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            onClick={handleAdd}
+            className="flex-1 border border-forest text-forest-dark py-3 uppercase text-sm tracking-widest hover:bg-forest hover:text-cream transition-colors"
+          >
+            {added ? 'Added ✓' : 'Add to Cart'}
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="flex-1 bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+          >
+            Buy Now
+          </button>
+        </div>
+      ) : (
+        <div className="pt-2 space-y-2">
+          <a
+            href={buildOrderLink(product, size, qty, isUnsized)}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() =>
+              logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'order' })
+            }
+            className="block w-full text-center bg-gold text-forest-dark py-3 uppercase text-sm tracking-widest hover:opacity-90 transition-opacity"
+          >
+            Order on WhatsApp
+          </a>
+          <p className="text-xs text-forest/70">
+            Online checkout is coming soon — message us on WhatsApp and we&rsquo;ll confirm
+            availability and arrange payment and delivery.
+          </p>
+        </div>
+      )}
 
       {customStitchAvailable && (
         <p className="text-xs text-forest/80 pt-1">

@@ -8,8 +8,18 @@ import { getSizeStock, getSizesForCategory } from '@/data/products';
 // lib/shipping.js) so the rates/countries Google sees in search results
 // can never drift out of sync with what's actually charged here.
 import { SHIPPING_REGIONS } from '@/lib/shipping';
+import siteConfig from '@/components/SiteConfig';
 
 export async function POST(request) {
+  // Online payments are switched off for now (see siteConfig.onlineCheckout)
+  // — refuse here too, not just in the UI, so nothing can reach Stripe.
+  if (!siteConfig.onlineCheckout) {
+    return NextResponse.json(
+      { error: 'Online checkout is coming soon — please order via WhatsApp.' },
+      { status: 503 }
+    );
+  }
+
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
     return NextResponse.json(

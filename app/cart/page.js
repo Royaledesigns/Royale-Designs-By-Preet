@@ -7,6 +7,8 @@ import { useCart } from '@/lib/cart-context';
 import { useCurrency } from '@/lib/currency-context';
 import Price from '@/components/Price';
 import { convert, formatMoney } from '@/lib/currency';
+import siteConfig from '@/components/SiteConfig';
+import { logContactEvent } from '@/lib/track-event';
 
 // Mirrors SHIPPING_REGIONS' `amount` (in cents) in app/api/checkout/route.js
 // — kept in sync there since that's what actually gets charged. This copy
@@ -153,13 +155,38 @@ export default function CartPage() {
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <button
-          onClick={handleCheckout}
-          disabled={loading}
-          className="bg-forest text-cream px-10 py-3.5 uppercase text-sm tracking-widest hover:bg-forest-dark transition-colors disabled:opacity-60"
-        >
-          {loading ? 'Redirecting to checkout…' : 'Proceed to Checkout'}
-        </button>
+        {siteConfig.onlineCheckout ? (
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="bg-forest text-cream px-10 py-3.5 uppercase text-sm tracking-widest hover:bg-forest-dark transition-colors disabled:opacity-60"
+          >
+            {loading ? 'Redirecting to checkout…' : 'Proceed to Checkout'}
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <a
+              href={`https://wa.me/${siteConfig.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                `Hi! I'd like to order:\n${items
+                  .map(
+                    (i) =>
+                      `• ${i.title}${i.size !== 'One Size' ? ` — Size: ${i.size}` : ''}${i.qty > 1 ? ` x${i.qty}` : ''}`
+                  )
+                  .join('\n')}\n\nTotal: ${formatMoney(subtotal, 'AUD')} (before shipping). Is everything available?`
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => logContactEvent('WhatsApp Click', { location: 'cart', context: 'order' })}
+              className="inline-block bg-forest text-cream px-10 py-3.5 uppercase text-sm tracking-widest hover:bg-forest-dark transition-colors"
+            >
+              Order on WhatsApp
+            </a>
+            <p className="text-xs text-forest/70">
+              Online checkout is coming soon — send us your cart on WhatsApp and we&rsquo;ll
+              confirm availability and arrange payment and delivery.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
