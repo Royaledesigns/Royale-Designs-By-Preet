@@ -749,6 +749,9 @@ export default function AdminProductsPage() {
   // typing instead of scrolled through — matches against title,
   // description, and category on whichever tab is active.
   const [search, setSearch] = useState('');
+  // 'all', a category slug, or 'sold' (sold-out pieces only) — narrows the
+  // list so marking something sold out doesn't mean scrolling the whole catalogue.
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const router = useRouter();
 
   const load = useCallback(async () => {
@@ -954,7 +957,7 @@ export default function AdminProductsPage() {
   // or category so "153 drafts" becomes "type a few letters" instead of
   // "scroll past 140 of them to find the one you want."
   const query = search.trim().toLowerCase();
-  function matches(p) {
+  function textMatches(p) {
     if (!query) return true;
     return (
       (p.title || '').toLowerCase().includes(query) ||
@@ -962,8 +965,25 @@ export default function AdminProductsPage() {
       (p.category || '').toLowerCase().includes(query)
     );
   }
+  function filterMatches(p) {
+    if (categoryFilter === 'all') return true;
+    if (categoryFilter === 'sold') return Boolean(p.soldOut);
+    return p.category === categoryFilter;
+  }
+  function matches(p) {
+    return textMatches(p) && filterMatches(p);
+  }
   const drafts = allDrafts.filter(matches);
   const published = allPublished.filter(matches);
+  // Counts shown on the filter chips — for whichever tab is open, narrowed
+  // by the search box but not by the chip itself.
+  const chipBase = (activeTab === 'unpublished' ? allDrafts : allPublished).filter(textMatches);
+  const chipCounts = chipBase.reduce((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + 1;
+    return acc;
+  }, {});
+  const soldCount = chipBase.filter((p) => p.soldOut).length;
+  const filtering = Boolean(query) || categoryFilter !== 'all';
   const visibleCount = activeTab === 'unpublished' ? drafts.length : published.length;
   const totalCount = activeTab === 'unpublished' ? allDrafts.length : allPublished.length;
 
@@ -994,7 +1014,7 @@ export default function AdminProductsPage() {
           <div className="flex gap-1 mb-3">
             <button
               type="button"
-              onClick={() => setActiveTab('unpublished')}
+              onClick={() => { setActiveTab('unpublished'); setCategoryFilter('all'); }}
               aria-current={activeTab === 'unpublished'}
               className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
                 activeTab === 'unpublished'
@@ -1006,7 +1026,7 @@ export default function AdminProductsPage() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('published')}
+              onClick={() => { setActiveTab('published'); setCategoryFilter('all'); }}
               aria-current={activeTab === 'published'}
               className={`px-4 py-2.5 text-sm uppercase tracking-wide border-b-2 -mb-px transition-colors ${
                 activeTab === 'published'
@@ -1038,9 +1058,33 @@ export default function AdminProductsPage() {
               <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
             </svg>
           </div>
-          {query && (
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { value: 'all', label: 'All', count: chipBase.length },
+              ...categories
+                .filter((c) => chipCounts[c.slug])
+                .map((c) => ({ value: c.slug, label: c.label, count: chipCounts[c.slug] })),
+              ...(soldCount > 0 ? [{ value: 'sold', label: 'Sold out', count: soldCount }] : []),
+            ].map((chip) => (
+              <button
+                key={chip.value}
+                type="button"
+                onClick={() => setCategoryFilter(chip.value)}
+                aria-pressed={categoryFilter === chip.value}
+                className={`flex-shrink-0 rounded-full border px-3.5 py-1.5 text-xs tracking-wide transition-colors ${
+                  categoryFilter === chip.value
+                    ? 'bg-forest text-cream border-forest'
+                    : 'border-forest/25 text-forest-dark hover:bg-cream-dark'
+                }`}
+              >
+                {chip.label} <span className="opacity-60">{chip.count}</span>
+              </button>
+            ))}
+          </div>
+          {filtering && (
             <p className="text-[11px] text-forest/60 mt-2">
-              {visibleCount} of {totalCount} match &quot;{search}&quot;
+              Showing {visibleCount} of {totalCount}
+              {query ? <> matching &quot;{search}&quot;</> : null}
             </p>
           )}
         </div>
@@ -1054,7 +1098,7 @@ export default function AdminProductsPage() {
                   posts below.
                 </p>
               ) : drafts.length === 0 ? (
-                <p className="text-sm text-forest/80">No drafts match &quot;{search}&quot;.</p>
+                <p className="text-sm text-forest/80">No drafts match this search or filter.</p>
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-4">
@@ -1084,7 +1128,7 @@ export default function AdminProductsPage() {
               {allPublished.length === 0 ? (
                 <p className="text-sm text-forest/80">Nothing published yet.</p>
               ) : published.length === 0 ? (
-                <p className="text-sm text-forest/80">No published products match &quot;{search}&quot;.</p>
+                <p className="text-sm text-forest/80">No published products match this search or filter.</p>
               ) : (
                 <div className="space-y-4">
                   {published.map((p) => (
