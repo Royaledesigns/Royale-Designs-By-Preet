@@ -18,6 +18,10 @@ const siteConfig = {
     // WhatsApp click-to-chat link for the business.
     whatsapp: 'https://wa.me/message/3Z23IAKTZMNRJ1',
   },
+  // Public WhatsApp Channel — followers get every new arrival you post there.
+  // Kept out of `social` on purpose: that list is also rendered as the header
+  // links and the site's structured data, which this shouldn't join.
+  whatsappChannel: 'https://whatsapp.com/channel/0029Vb7qGPoAO7RHDqvJVt2I',
   // Shown as the handle under the homepage Instagram feed.
   instagramHandle: '@royale_designs_by_preet',
   // Real rating from the business's Google Business Profile

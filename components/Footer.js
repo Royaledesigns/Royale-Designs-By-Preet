@@ -97,6 +97,14 @@ export default function Footer() {
                 {name}
               </a>
             ))}
+            <a
+              href={siteConfig.whatsappChannel}
+              target="_blank"
+              rel="noreferrer"
+              className="text-cream/70 hover:text-gold text-xs uppercase tracking-wide"
+            >
+              WhatsApp Channel
+            </a>
           </div>
         </div>
       </div>

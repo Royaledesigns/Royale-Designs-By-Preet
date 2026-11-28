@@ -139,6 +139,9 @@ function ProductCard({ product, onSaved, onDeleted }) {
   // Photo-upload problems show right under the photos (not down with the
   // form-level error at the bottom of the card, where they were missed).
   const [photoError, setPhotoError] = useState('');
+  const [channelCopied, setChannelCopied] = useState(false);
+  const [emailing, setEmailing] = useState(false);
+  const [emailNote, setEmailNote] = useState('');
   // Deliberately reads product.status (the live prop), not form.status —
   // that way the Publish/Unpublish buttons update immediately once the
   // parent swaps in the saved record, without disturbing the rest of the
@@ -206,6 +209,60 @@ function ProductCard({ product, onSaved, onDeleted }) {
       setForm((f) => ({ ...f, soldOut: !nextSoldOut }));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Share a published piece to the WhatsApp Channel. WhatsApp has no way to
+  // post to a channel automatically, so this copies a ready-made caption
+  // (name and link, no price) and opens the channel — paste it, add the photo or
+  // video, and send.
+  async function shareToChannel() {
+    const url = `${window.location.origin}/product/${product.id}`;
+    // No price on purpose — the channel gets just the post/reel and a link.
+    const caption = `New arrival at Royale Designs by Preet\n${product.title}\n${url}`;
+    try {
+      await navigator.clipboard.writeText(caption);
+      setChannelCopied(true);
+      setTimeout(() => setChannelCopied(false), 4000);
+    } catch {
+      window.prompt('Copy this caption, then paste it in the channel:', caption);
+    }
+    window.open('https://whatsapp.com/channel/0029Vb7qGPoAO7RHDqvJVt2I', '_blank', 'noreferrer');
+  }
+
+  // Emails this product to everyone on the newsletter list. Checks the
+  // list size first and asks before sending; a product that was already
+  // emailed asks again so it can't go out twice by accident.
+  async function emailSubscribers() {
+    setEmailing(true);
+    setEmailNote('');
+    setError('');
+    try {
+      const check = await fetch(`/api/admin/notify-subscribers?id=${encodeURIComponent(product.id)}`);
+      const info = await check.json();
+      if (!check.ok) throw new Error(info.error || 'Could not check your subscriber list.');
+      if (!info.emailReady) throw new Error('Email sending is not set up yet — add RESEND_API_KEY in Vercel.');
+      if (info.count === 0) throw new Error('You have no email subscribers yet.');
+
+      const again = info.alreadySentAt
+        ? `\n\nNote: this piece was already emailed on ${new Date(info.alreadySentAt).toLocaleDateString('en-AU')}.`
+        : '';
+      if (!window.confirm(`Email "${product.title}" to ${info.count} subscriber${info.count === 1 ? '' : 's'} now? This cannot be undone.${again}`)) {
+        return;
+      }
+
+      const res = await fetch('/api/admin/notify-subscribers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: product.id, force: Boolean(info.alreadySentAt) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not send the emails.');
+      setEmailNote(`Emailed ${data.sent} subscriber${data.sent === 1 ? '' : 's'}${data.failed ? ` (${data.failed} failed)` : ''}.`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEmailing(false);
     }
   }
 
@@ -602,6 +659,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
         )}
 
         {error && <p className="text-sm text-red-700">{error}</p>}
+        {emailNote && <p className="text-sm text-forest-dark">{emailNote}</p>}
 
         <div className="flex flex-wrap gap-2 pt-1">
           {isDraft ? (
@@ -637,6 +695,23 @@ function ProductCard({ product, onSaved, onDeleted }) {
               className="border border-forest/30 text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:bg-cream-dark disabled:opacity-60"
             >
               Unpublish
+            </button>
+          )}
+          {!isDraft && (
+            <button
+              onClick={shareToChannel}
+              className="border border-forest/30 text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:bg-cream-dark"
+            >
+              {channelCopied ? 'Caption copied — paste in channel' : 'Share to WhatsApp Channel'}
+            </button>
+          )}
+          {!isDraft && (
+            <button
+              onClick={emailSubscribers}
+              disabled={emailing}
+              className="border border-forest/30 text-forest-dark px-4 py-2 text-xs uppercase tracking-widest hover:bg-cream-dark disabled:opacity-60"
+            >
+              {emailing ? 'Sending…' : 'Email subscribers'}
             </button>
           )}
           <button

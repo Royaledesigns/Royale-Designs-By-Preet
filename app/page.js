@@ -5,6 +5,7 @@ import { getAllProducts, storefrontRank } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
 import InstagramFeed from '@/components/InstagramFeed';
 import Testimonials from '@/components/Testimonials';
+import ChannelBanner from '@/components/ChannelBanner';
 import siteConfig from '@/components/SiteConfig';
 
 // 5 minutes, not 30 seconds — every regeneration re-reads the catalog from
@@ -160,6 +161,9 @@ export default async function HomePage() {
 
       {/* Live Instagram feed — hides itself until INSTAGRAM_ACCESS_TOKEN is set */}
       <InstagramFeed />
+
+      {/* Invite visitors to follow the WhatsApp Channel for new arrivals */}
+      <ChannelBanner />
 
       {/* Customer testimonials — curated from real Google reviews */}
       <Testimonials />
