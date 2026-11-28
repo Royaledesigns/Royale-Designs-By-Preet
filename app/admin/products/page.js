@@ -47,7 +47,7 @@ function emptyForm(product) {
 // A brand-new, not-yet-saved product added via "Add new product". It has
 // no real id yet — that's assigned once it's actually saved — so it's
 // tracked locally by _localKey instead until then.
-function blankProduct() {
+function blankProduct(image = null) {
   return {
     _localKey: `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     id: null,
@@ -58,7 +58,10 @@ function blankProduct() {
     customStitch: true,
     availableSizes: {},
     soldOut: false,
-    image: null,
+    // Pre-filled when a card is created from a bulk photo upload (see
+    // handleBulkPhotos); null for a plain "+" card, where the photo is
+    // added from the card itself.
+    image,
     status: 'draft',
     source: 'manual',
     instagramMediaId: null,
@@ -506,6 +509,9 @@ function ProductCard({ product, onSaved, onDeleted }) {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState(null);
+  const bulkInputRef = useRef(null);
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [loadError, setLoadError] = useState('');
@@ -657,6 +663,47 @@ export default function AdminProductsPage() {
     // Clear any active search — otherwise the new blank card (no title yet)
     // wouldn't match and would silently fail to appear.
     setSearch('');
+  }
+
+  // "Add several photos": pick or shoot a batch of photos and get one new
+  // draft card per photo, each already holding its uploaded picture, ready
+  // for a title/category/price. Uploads run one at a time (a batch of
+  // full-size phone photos in parallel can choke a mobile connection), and
+  // a card appears the moment its own photo lands, so you can start filling
+  // in the first while the rest are still uploading. The cards are local
+  // until you save each one (same as the "+" button) — its web address is
+  // built from the title you give it, so nothing is saved early under a
+  // placeholder name.
+  async function handleBulkPhotos(e) {
+    const files = Array.from(e.target.files || []);
+    // Reset so picking the same photos again still fires a change event.
+    e.target.value = '';
+    if (files.length === 0) return;
+    setBulkBusy(true);
+    setActiveTab('unpublished');
+    setSearch('');
+    let done = 0;
+    const failed = [];
+    for (let i = 0; i < files.length; i++) {
+      setBulkStatus(`Uploading photo ${i + 1} of ${files.length}…`);
+      try {
+        const body = new FormData();
+        body.append('file', files[i]);
+        const res = await fetch('/api/admin/upload', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'upload failed');
+        setProducts((prev) => [blankProduct(data.url), ...(prev || [])]);
+        done++;
+      } catch (err) {
+        failed.push(`${files[i].name || `photo ${i + 1}`}: ${err.message}`);
+      }
+    }
+    setBulkBusy(false);
+    setBulkStatus(
+      failed.length === 0
+        ? `Added ${done} photo${done === 1 ? '' : 's'} as new drafts. Fill in each title, then Save — photos not saved are lost if you reload this page.`
+        : `Added ${done} of ${files.length}. Couldn't upload: ${failed.join('; ')}`
+    );
   }
 
   function handleSaved(updated, localKey) {
@@ -871,6 +918,40 @@ export default function AdminProductsPage() {
           draft list or which tab you're on — this was the specific
           complaint ("Add New Product is buried"), so it's now a floating
           button rather than one more item in a row of buttons at the top. */}
+      {/* Hidden multi-select input behind the "several photos" button.
+          Without `capture`, iPhones offer Photo Library (multi-select),
+          Take Photo and Choose Files in the picker. */}
+      <input
+        ref={bulkInputRef}
+        type="file"
+        accept="image/*,.heic,.heif"
+        multiple
+        onChange={handleBulkPhotos}
+        className="hidden"
+      />
+      {bulkStatus && (
+        <div className="fixed bottom-44 left-4 right-4 sm:left-auto sm:right-8 sm:max-w-sm z-30 bg-forest-dark text-cream text-xs leading-relaxed rounded-sm shadow-lg px-4 py-3 flex items-start gap-3">
+          <p className="flex-1">{bulkStatus}</p>
+          {!bulkBusy && (
+            <button type="button" onClick={() => setBulkStatus('')} aria-label="Dismiss" className="text-cream/70 hover:text-cream">
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => bulkInputRef.current?.click()}
+        disabled={bulkBusy}
+        aria-label="Add several photos at once"
+        className="fixed bottom-[5.5rem] right-5 sm:right-8 z-30 flex items-center gap-2 bg-forest-dark text-cream rounded-full shadow-lg px-5 py-4 text-xs uppercase tracking-widest hover:opacity-90 active:scale-95 transition-transform disabled:opacity-60"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="6" width="14" height="14" rx="1.5" />
+          <path d="M7 6V4.5A1.5 1.5 0 0 1 8.5 3H20a1 1 0 0 1 1 1v11.5a1.5 1.5 0 0 1-1.5 1.5H17" strokeLinecap="round" />
+        </svg>
+        <span className="hidden sm:inline">{bulkBusy ? 'Uploading…' : 'Several photos'}</span>
+      </button>
       <button
         type="button"
         onClick={addNewProduct}
