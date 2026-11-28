@@ -1058,7 +1058,7 @@ export default function AdminProductsPage() {
               <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
             </svg>
           </div>
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-wrap gap-2 mt-3">
             {[
               { value: 'all', label: 'All', count: chipBase.length },
               ...categories
@@ -1071,7 +1071,7 @@ export default function AdminProductsPage() {
                 type="button"
                 onClick={() => setCategoryFilter(chip.value)}
                 aria-pressed={categoryFilter === chip.value}
-                className={`flex-shrink-0 rounded-full border px-3.5 py-1.5 text-xs tracking-wide transition-colors ${
+                className={`rounded-full border px-3.5 py-1.5 text-xs tracking-wide transition-colors ${
                   categoryFilter === chip.value
                     ? 'bg-forest text-cream border-forest'
                     : 'border-forest/25 text-forest-dark hover:bg-cream-dark'
