@@ -27,10 +27,14 @@ export default async function HomePage() {
   // with two smaller styled accents (jewellery + jutti), all from the same
   // shoot — a deliberate, editorial trio instead of a wide stitched collage.
   const heroPrimary = '/images/hero-bride-red-lehenga.jpg';
-  // Generously-margined crops of the full flat-lay shots (earrings + tikka
-  // + necklace; both juttis) — see the accent-panel sizing note below for
-  // why these need wider panels rather than a tighter crop.
-  const heroAccentTop = '/images/hero-jewellery-accent.jpg';
+  // Generously-margined crops of the full flat-lay shots (jewellery set;
+  // both juttis) — see the accent-panel sizing note below for why these
+  // need wider panels rather than a tighter crop.
+  // Now the gold jewellery set with the orange-and-flowers styling (Nov
+  // 2026). A permanent copy of that product photo kept under site/ in image
+  // storage (see app/api/admin/copy-hero-image) — not the product's own
+  // file, which is deleted whenever that product's photo is replaced.
+  const heroAccentTop = 'https://images.royaledesigns.com.au/site/hero-jewellery.jpg';
   const heroAccentBottom = '/images/hero-pink-jutti-accent.jpg';
   // Most-recently uploaded to Instagram first — see storefrontRank in
   // lib/catalog.js. getAllProducts() already returns products in this
