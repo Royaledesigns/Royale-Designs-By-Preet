@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { categories } from '@/data/products';
 import { getCategory, getProductsByCategory } from '@/lib/catalog';
 import ProductCard from '@/components/ProductCard';
+import siteConfig from '@/components/SiteConfig';
 
 // 5 minutes, not 30 seconds — every regeneration re-reads the catalog from
 // the database, and the old 30-second interval across every page was
@@ -94,6 +95,23 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// Short on-page intro under each category heading — gives Google and
+// shoppers the same local, plain-language context the page title carries.
+const CATEGORY_INTRO = {
+  'bridal-wear-outfits':
+    'Bridal lehengas, ghararas and sharara sets for engagements, sangeets and your wedding day',
+  lehengas: 'Embellished bridal and party lehengas',
+  'gharara-sets': 'Richly embellished gharara suits for weddings, sangeets and festive occasions',
+  'sharara-sets': 'Flowing sharara sets for weddings and festive wear',
+  anarkalis: 'Elegant floor-length Anarkali suits for weddings, parties and festive occasions',
+  suits: 'Punjabi partywear suits for weddings and celebrations',
+  'casual-wear-suits': 'Comfortable everyday Indian and Pakistani suits',
+  'pakistani-mirror-dupattas': 'Pakistani mirror-work dupattas to complete any outfit',
+  'heels-punjabi-jutti': 'Punjabi jutti and heels, the finishing touch for any bridal or festive outfit',
+  'kids-wear': 'Festive and wedding outfits for the little ones',
+  jewellery: 'Bridal and party jewellery sets to finish any ethnic outfit',
+};
+
 export default async function CategoryPage({ params }) {
   const { category: categorySlug } = await params;
   const category = getCategory(categorySlug);
@@ -103,7 +121,12 @@ export default async function CategoryPage({ params }) {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
       <h1 className="font-serif text-4xl text-forest-dark mb-2">{category.label}</h1>
-      <p className="text-forest/80 mb-8">{items.length} piece{items.length === 1 ? '' : 's'}</p>
+      <p className="text-forest/80 mb-3">{items.length} piece{items.length === 1 ? '' : 's'}</p>
+      <p className="text-forest/80 max-w-3xl mb-8 leading-relaxed">
+        {CATEGORY_INTRO[categorySlug] || `Shop ${category.label.toLowerCase()}`} from Royale Designs by
+        Preet, an Indian and Pakistani clothing boutique in Tarneit, Melbourne. Every piece is
+        thoughtfully customised for you and delivered to {siteConfig.shipsTo.join(', ')}.
+      </p>
 
       <div className="flex flex-wrap gap-2 mb-10">
         <Link

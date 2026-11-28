@@ -16,6 +16,18 @@ const faqs = [
     a: `We're based in ${siteConfig.location} and happy to arrange a time for you to see and try pieces in person — message us on WhatsApp or send a note through our Contact page to book a viewing.`,
   },
   {
+    q: 'Is there an Indian clothes shop in Tarneit or Melbourne?',
+    a: `Yes — ${siteConfig.name} is an Indian and Pakistani clothing boutique based in ${siteConfig.location}. We offer bridal lehengas, gharara and sharara sets, anarkalis, Punjabi suits, jutti and jewellery, thoughtfully customised for you. Message us on WhatsApp to arrange a viewing.`,
+  },
+  {
+    q: 'Is Royal Designs by Preet the same as Royale Designs by Preet?',
+    a: `Yes. Many customers search for us as "Royal Designs by Preet" or "Royal Design by Preet" — it's the same business, ${siteConfig.name}, based in ${siteConfig.location}.`,
+  },
+  {
+    q: 'Where can I buy Punjabi suits and bridal lehengas in Melbourne?',
+    a: `You can browse our full collection of Punjabi suits, bridal lehengas, ghararas and sharara sets on this website, or visit us by appointment in ${siteConfig.location}. Every piece can be custom stitched to your measurements.`,
+  },
+  {
     q: "What's the difference between a lehenga, gharara and sharara?",
     a: 'A lehenga is a flared, floor-length skirt paired with a fitted blouse and dupatta — the classic bridal silhouette. A gharara is a pair of wide, flared pants that split at the knee, traditionally worn with a short kurta. A sharara is similar to a gharara but flares from the hip rather than the knee, giving a softer, more flowing drape. All three can be custom stitched to your measurements.',
   },

@@ -19,6 +19,8 @@ export const revalidate = 300;
 // engines treat it as the one true version instead of bare-domain/www
 // variants getting indexed as separate pages.
 export const metadata = {
+  description:
+    'Indian & Pakistani clothes shop in Tarneit, Melbourne — bridal lehengas, gharara and sharara sets, anarkalis and Punjabi suits, thoughtfully customised for you and delivered to Australia, the USA, Canada, the UK, New Zealand and Europe.',
   alternates: { canonical: '/' },
 };
 
@@ -176,6 +178,11 @@ export default async function HomePage() {
           {' '}{siteConfig.location}. We currently deliver to {siteConfig.shipsTo.join(', ')}.
           Prices are shown in AUD by default — use the currency switcher in the header to
           preview an estimate in your own currency.
+        </p>
+        <p className="text-forest/80 max-w-2xl mx-auto leading-relaxed mt-4">
+          Looking for an Indian or Pakistani clothes shop in Tarneit or Melbourne? From bridal
+          lehengas to Punjabi suits, jutti and jewellery, we&rsquo;re happy to help you find or
+          custom make the right piece &mdash; message us on WhatsApp to arrange a viewing.
         </p>
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           {siteConfig.shipsTo.map((country) => (

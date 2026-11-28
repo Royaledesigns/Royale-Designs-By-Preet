@@ -50,6 +50,9 @@ const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ClothingStore',
   name: siteConfig.name,
+  // How customers commonly type the name into Google (most drop the final
+  // "e") — tells search engines these all mean this one business.
+  alternateName: ['Royal Designs by Preet', 'Royal Design by Preet', 'Royale Designs'],
   url: SITE_URL,
   // No dedicated square logo file exists yet (the hero image is a photo
   // collage, not a wordmark/icon) — add a `logo` field here once you have
