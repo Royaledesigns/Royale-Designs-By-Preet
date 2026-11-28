@@ -26,6 +26,14 @@ function buildOrderLink(product, size, qty, isUnsized) {
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
+// "Need a different size?" link under the size picker. Opens WhatsApp with the
+// product name already typed so the question arrives with context.
+function buildSizeAskLink(product) {
+  const number = siteConfig.phone.replace(/[^0-9]/g, '');
+  const message = `Hi! I'm interested in ${product.title}. Could you tell me if it's available in another size?`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
 export default function AddToCartForm({ product }) {
   // Clothing sizes (XS–XL) everywhere except Heels & Punjabi Jutti (EU shoe
   // sizes) and Kids Wear (age-based sizes). Jewellery and Dupattas aren't
@@ -156,6 +164,23 @@ export default function AddToCartForm({ product }) {
               : []),
           ]}
         />
+      )}
+
+      {!isUnsized && (
+        <p className="text-xs text-forest/80 -mt-2">
+          Don&rsquo;t see your size?{' '}
+          <a
+            href={buildSizeAskLink(product)}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() =>
+              logContactEvent('WhatsApp Click', { location: 'product_page', product: product.title, context: 'size_request' })
+            }
+            className="font-semibold text-gold-dark underline hover:text-forest-dark"
+          >
+            Ask us on WhatsApp
+          </a>
+        </p>
       )}
 
       <div>
