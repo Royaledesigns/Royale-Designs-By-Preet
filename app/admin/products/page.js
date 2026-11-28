@@ -24,6 +24,57 @@ function normalizeSizeStock(availableSizes) {
 // Main photo + up to 3 extras shown on the product page.
 const MAX_PHOTOS = 4;
 
+// Shrinks a phone photo in the browser before it's sent. A full-resolution
+// iPhone photo can be 4–10MB, and Vercel rejects any upload over ~4.5MB
+// outright (the request never even reaches our upload route) — which is
+// exactly how photos could silently fail to appear. The server resizes to
+// 1600px anyway, so nothing is lost by doing it here first; it also makes
+// uploads far quicker on mobile data. Falls back to the original file if
+// the browser can't decode it (the server then handles it as before).
+async function shrinkPhoto(file) {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const MAX = 1600;
+    const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    if (!blob) return file;
+    const name = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+// Uploads one photo (shrunk first) and returns its stored URL, or throws an
+// error with a plain-English message. Reads the response as text first so a
+// non-JSON failure page (e.g. Vercel's "too large") becomes a readable
+// message instead of "Unexpected token…".
+async function uploadPhoto(file) {
+  const small = await shrinkPhoto(file);
+  const body = new FormData();
+  body.append('file', small);
+  const res = await fetch('/api/admin/upload', { method: 'POST', body });
+  const text = await res.text();
+  let data = null;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    // not JSON — handled below
+  }
+  if (!res.ok || !data?.url) {
+    if (res.status === 413) throw new Error('That photo is too large to upload — try a smaller one.');
+    throw new Error(data?.error || `Upload failed (${res.status}). Please try again.`);
+  }
+  return data.url;
+}
+
 function emptyForm(product) {
   return {
     id: product.id,
@@ -85,6 +136,9 @@ function ProductCard({ product, onSaved, onDeleted }) {
   const fileInputRef = useRef(null);
   const extraInputRef = useRef(null);
   const [uploadingExtras, setUploadingExtras] = useState(false);
+  // Photo-upload problems show right under the photos (not down with the
+  // form-level error at the bottom of the card, where they were missed).
+  const [photoError, setPhotoError] = useState('');
   // Deliberately reads product.status (the live prop), not form.status —
   // that way the Publish/Unpublish buttons update immediately once the
   // parent swaps in the saved record, without disturbing the rest of the
@@ -164,16 +218,11 @@ function ProductCard({ product, onSaved, onDeleted }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    setError('');
+    setPhotoError('');
     try {
-      const body = new FormData();
-      body.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not upload that photo.');
-      set('image', data.url);
+      set('image', await uploadPhoto(file));
     } catch (err) {
-      setError(err.message);
+      setPhotoError(err.message);
     } finally {
       setUploading(false);
       // Reset so choosing the same file again still fires a change event.
@@ -192,29 +241,23 @@ function ProductCard({ product, onSaved, onDeleted }) {
     const used = (form.image ? 1 : 0) + form.extraImages.length;
     const room = MAX_PHOTOS - used;
     if (room <= 0) {
-      setError(`A product can have up to ${MAX_PHOTOS} photos.`);
+      setPhotoError(`A product can have up to ${MAX_PHOTOS} photos.`);
       return;
     }
     const files = picked.slice(0, room);
     setUploadingExtras(true);
-    setError(
+    setPhotoError(
       picked.length > room ? `Only ${room} more photo${room === 1 ? '' : 's'} fit — added the first ${room}.` : ''
     );
     try {
       for (const file of files) {
-        const body = new FormData();
-        body.append('file', file);
-        const res = await fetch('/api/admin/upload', { method: 'POST', body });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Could not upload that photo.');
+        const url = await uploadPhoto(file);
         setForm((f) =>
-          f.image
-            ? { ...f, extraImages: [...f.extraImages, data.url] }
-            : { ...f, image: data.url }
+          f.image ? { ...f, extraImages: [...f.extraImages, url] } : { ...f, image: url }
         );
       }
     } catch (err) {
-      setError(err.message);
+      setPhotoError(err.message);
     } finally {
       setUploadingExtras(false);
     }
@@ -379,6 +422,7 @@ function ProductCard({ product, onSaved, onDeleted }) {
           </label>
         )}
       </div>
+      {photoError && <p className="mt-2 text-xs text-red-700">{photoError}</p>}
       </div>
 
       <div className="flex-1 space-y-3">
@@ -788,12 +832,8 @@ export default function AdminProductsPage() {
     for (let i = 0; i < files.length; i++) {
       setBulkStatus(`Uploading photo ${i + 1} of ${files.length}…`);
       try {
-        const body = new FormData();
-        body.append('file', files[i]);
-        const res = await fetch('/api/admin/upload', { method: 'POST', body });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'upload failed');
-        setProducts((prev) => [blankProduct(data.url), ...(prev || [])]);
+        const url = await uploadPhoto(files[i]);
+        setProducts((prev) => [blankProduct(url), ...(prev || [])]);
         done++;
       } catch (err) {
         failed.push(`${files[i].name || `photo ${i + 1}`}: ${err.message}`);
